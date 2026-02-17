@@ -1,4 +1,4 @@
-import { ExternalLink, Bed, Bath, Car, Maximize, Waves, TrendingDown, MapPin, Clock, Star, Building2 } from 'lucide-react';
+import { ExternalLink, Bed, Bath, Car, Maximize, Waves, TrendingDown, MapPin, Clock, Star } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,10 +21,10 @@ export function PropertyCard({ property }: PropertyCardProps) {
     <Card className="overflow-hidden hover:shadow-lg transition-shadow group">
       {/* Image */}
       <div className="relative aspect-[4/3] bg-muted overflow-hidden">
-        {property.main_photo_url ? (
+        {property.photo_url ? (
           <img
-            src={property.main_photo_url}
-            alt={property.address || 'Property'}
+            src={property.photo_url}
+            alt={property.address}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
@@ -45,7 +45,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
               Under Offer
             </Badge>
           )}
-          {property.has_pool && (
+          {property.pool && (
             <Badge className="bg-cyan-500 text-white text-xs">
               <Waves className="h-3 w-3 mr-1" />
               Pool
@@ -55,12 +55,6 @@ export function PropertyCard({ property }: PropertyCardProps) {
             <Badge className="bg-green-500 text-white text-xs">
               <TrendingDown className="h-3 w-3 mr-1" />
               {priceDropPercent}% off
-            </Badge>
-          )}
-          {property.is_best_value && (
-            <Badge className="bg-amber-500 text-white text-xs">
-              <Star className="h-3 w-3 mr-1" />
-              Best Value
             </Badge>
           )}
         </div>
@@ -82,7 +76,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
         <div className="flex items-start justify-between mb-2">
           <div>
             <p className="font-bold text-lg text-primary">
-              {property.price || 'Price on request'}
+              {property.price_display || 'Price on request'}
             </p>
             {priceDropPercent && property.original_price && (
               <p className="text-xs text-muted-foreground line-through">
@@ -99,7 +93,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
         </div>
 
         {/* Address */}
-        <p className="font-medium text-sm mb-1 line-clamp-1" title={property.address || undefined}>
+        <p className="font-medium text-sm mb-1 line-clamp-1" title={property.address}>
           {property.address}
         </p>
         <p className="text-xs text-muted-foreground mb-3">
@@ -136,12 +130,37 @@ export function PropertyCard({ property }: PropertyCardProps) {
 
         {/* CTA */}
         <Button asChild className="w-full" variant="default">
-          <a href={property.domain_url} target="_blank" rel="noopener noreferrer">
+          <a href={property.url} target="_blank" rel="noopener noreferrer">
             View on Domain
             <ExternalLink className="ml-2 h-4 w-4" />
           </a>
         </Button>
       </CardContent>
     </Card>
+  );
+}
+
+function Building2(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
+      <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+      <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
+      <path d="M10 6h4" />
+      <path d="M10 10h4" />
+      <path d="M10 14h4" />
+      <path d="M10 18h4" />
+    </svg>
   );
 }
