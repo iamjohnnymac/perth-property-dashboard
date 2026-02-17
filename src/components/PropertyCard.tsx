@@ -1,4 +1,4 @@
-import { ExternalLink, Bed, Bath, Car, Maximize, Waves, TrendingDown, MapPin, Clock, Star } from 'lucide-react';
+import { ExternalLink, Bed, Bath, Car, Maximize, Waves, TrendingDown, MapPin, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -123,7 +123,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
           {property.land_size && (
             <span className="flex items-center gap-1">
               <Maximize className="h-4 w-4" />
-              {property.land_size}m²
+              {property.land_size}m\u00b2
             </span>
           )}
         </div>
