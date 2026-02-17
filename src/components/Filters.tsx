@@ -10,7 +10,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { FilterState } from '@/App';
+
+export interface FilterState {
+  suburb: string;
+  propertyType: string;
+  minBeds: number;
+  maxPrice: number | null;
+  poolOnly: boolean;
+  underBudget: boolean;
+  availableOnly: boolean;
+  hideLand: boolean;
+  bestValue: boolean;
+  motivatedSeller: boolean;
+}
 
 interface FiltersProps {
   filters: FilterState;

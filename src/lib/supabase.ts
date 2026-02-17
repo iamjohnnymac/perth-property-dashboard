@@ -9,15 +9,15 @@ export interface Property {
   id: number
   address: string
   suburb: string
-  bedrooms: number
-  bathrooms: number
-  car_spaces: number
+  bedrooms: number | null
+  bathrooms: number | null
+  car_spaces: number | null
   land_size: number | null
-  price_display: string | null
+  price: string | null
   price_numeric: number | null
-  url: string
-  photo_url: string | null
-  pool: boolean
+  domain_url: string
+  main_photo_url: string | null
+  has_pool: boolean
   under_offer: boolean
   property_type: string | null
   first_seen_date: string | null
@@ -26,16 +26,7 @@ export interface Property {
   original_price: number | null
   price_drop_amount: number | null
   beach_distance_km: number | null
-  motivation_score: number | null
-  status: string
-}
-
-export interface Comparable {
-  id: number
-  suburb: string
-  bedrooms: number
-  avg_sold_price: number
-  median_sold_price: number
-  sale_count: number
-  last_updated: string
+  vendor_motivation_score: number | null
+  is_best_value: boolean | null
+  status: string | null
 }

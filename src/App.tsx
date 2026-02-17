@@ -5,7 +5,7 @@ import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { HeroStats } from './components/HeroStats';
 import { PropertyCard } from './components/PropertyCard';
-import { Filters } from './components/Filters';
+import { Filters, type FilterState } from './components/Filters';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Button } from './components/ui/button';
 import { Badge } from './components/ui/badge';
@@ -20,25 +20,12 @@ import L from 'leaflet';
 import './App.css';
 
 // Fix Leaflet marker icons
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
-
-export interface FilterState {
-  suburb: string;
-  propertyType: string;
-  minBeds: number;
-  maxPrice: number | null;
-  poolOnly: boolean;
-  underBudget: boolean;
-  availableOnly: boolean;
-  hideLand: boolean;
-  bestValue: boolean;
-  motivatedSeller: boolean;
-}
 
 const BUDGET = 1740000;
 
@@ -66,7 +53,7 @@ function App() {
         .from('property_listings')
         .select('*')
         .order('first_seen_date', { ascending: false });
-      
+
       if (error) {
         console.error('Error fetching properties:', error);
       } else {
@@ -103,7 +90,7 @@ function App() {
   }, [properties]);
 
   const propertyTypes = useMemo(() => {
-    const t = new Set(properties.map((p) => p.property_type).filter(Boolean));
+    const t = new Set(properties.map((p) => p.property_type).filter((x): x is string => Boolean(x)));
     return Array.from(t).sort();
   }, [properties]);
 
@@ -153,9 +140,9 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar 
-        activeView={activeView} 
-        onViewChange={setActiveView} 
+      <Navbar
+        activeView={activeView}
+        onViewChange={setActiveView}
         isDark={isDark}
         onToggleDark={() => setIsDark(!isDark)}
       />

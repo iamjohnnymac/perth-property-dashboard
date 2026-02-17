@@ -1,4 +1,4 @@
-import { ExternalLink, Bed, Bath, Car, Maximize, Waves, TrendingDown, MapPin, Clock, Star } from 'lucide-react';
+import { ExternalLink, Bed, Bath, Car, Maximize, Waves, TrendingDown, MapPin, Clock, Star, Building2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
         {property.main_photo_url ? (
           <img
             src={property.main_photo_url}
-            alt={property.address}
+            alt={property.address || 'Property'}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
@@ -32,7 +32,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
             <Building2 className="h-12 w-12" />
           </div>
         )}
-        
+
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-wrap gap-1">
           {property.property_type && (
@@ -99,7 +99,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
         </div>
 
         {/* Address */}
-        <p className="font-medium text-sm mb-1 line-clamp-1" title={property.address}>
+        <p className="font-medium text-sm mb-1 line-clamp-1" title={property.address || undefined}>
           {property.address}
         </p>
         <p className="text-xs text-muted-foreground mb-3">
@@ -143,30 +143,5 @@ export function PropertyCard({ property }: PropertyCardProps) {
         </Button>
       </CardContent>
     </Card>
-  );
-}
-
-function Building2(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
-      <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
-      <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
-      <path d="M10 6h4" />
-      <path d="M10 10h4" />
-      <path d="M10 14h4" />
-      <path d="M10 18h4" />
-    </svg>
   );
 }
