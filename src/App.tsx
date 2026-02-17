@@ -74,12 +74,11 @@ function App() {
       if (filters.propertyType && p.property_type !== filters.propertyType) return false;
       if (filters.minBeds && (p.bedrooms || 0) < filters.minBeds) return false;
       if (filters.maxPrice && p.price_numeric && p.price_numeric > filters.maxPrice) return false;
-      if (filters.poolOnly && !p.has_pool) return false;
+      if (filters.poolOnly && !p.pool) return false;
       if (filters.underBudget && (!p.price_numeric || p.price_numeric > BUDGET)) return false;
       if (filters.availableOnly && p.under_offer) return false;
       if (filters.hideLand && (p.property_type === 'Land' || (p.bedrooms || 0) === 0)) return false;
-      if (filters.bestValue && !p.is_best_value) return false;
-      if (filters.motivatedSeller && (p.vendor_motivation_score || 0) < 3) return false;
+      // bestValue and motivatedSeller filters disabled for now (fields not in DB)
       return true;
     });
   }, [properties, filters]);
@@ -98,7 +97,7 @@ function App() {
     const available = properties.filter((p) => !p.under_offer && p.property_type !== 'Land' && (p.bedrooms || 0) > 0);
     return {
       total: available.length,
-      withPools: available.filter((p) => p.has_pool).length,
+      withPools: available.filter((p) => p.pool).length,
       underBudget: available.filter((p) => p.price_numeric && p.price_numeric <= BUDGET).length,
       underOffer: properties.filter((p) => p.under_offer).length,
     };
@@ -113,7 +112,7 @@ function App() {
       }
       statsMap[p.suburb].count++;
       if (p.price_numeric) statsMap[p.suburb].prices.push(p.price_numeric);
-      if (p.has_pool) statsMap[p.suburb].pools++;
+      if (p.pool) statsMap[p.suburb].pools++;
     });
 
     return Object.entries(statsMap)
@@ -256,12 +255,12 @@ function App() {
                         <Popup>
                           <div className="max-w-xs">
                             <p className="font-bold text-sm">{property.address}</p>
-                            <p className="text-primary font-medium">{property.price}</p>
+                            <p className="text-primary font-medium">{property.price_display}</p>
                             <p className="text-xs text-muted-foreground mb-2">
                               {property.bedrooms} bed · {property.bathrooms} bath · {property.car_spaces} car
                             </p>
                             <a
-                              href={property.domain_url}
+                              href={property.url}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-xs text-primary hover:underline flex items-center gap-1"
@@ -326,23 +325,23 @@ function App() {
                 </CardContent>
               </Card>
 
-              {/* Best Investment Picks */}
+              {/* Under Budget Properties */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Best Investment Picks</CardTitle>
+                  <CardTitle>Under Budget Properties</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredProperties
-                      .filter((p) => p.is_best_value)
+                      .filter((p) => p.price_numeric && p.price_numeric <= BUDGET)
                       .slice(0, 6)
                       .map((property) => (
                         <PropertyCard key={property.id} property={property} />
                       ))}
                   </div>
-                  {filteredProperties.filter((p) => p.is_best_value).length === 0 && (
+                  {filteredProperties.filter((p) => p.price_numeric && p.price_numeric <= BUDGET).length === 0 && (
                     <p className="text-center text-muted-foreground py-8">
-                      No best value properties found with current filters
+                      No properties under budget with current filters
                     </p>
                   )}
                 </CardContent>
