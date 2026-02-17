@@ -72,12 +72,15 @@ export function Filters({ filters, onFilterChange, suburbs, propertyTypes, onClo
         {/* Suburb */}
         <div className="space-y-2">
           <Label>Suburb</Label>
-          <Select value={filters.suburb} onValueChange={(v) => updateFilter('suburb', v)}>
+          <Select 
+            value={filters.suburb || '__all__'} 
+            onValueChange={(v) => updateFilter('suburb', v === '__all__' ? '' : v)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="All suburbs" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All suburbs</SelectItem>
+              <SelectItem value="__all__">All suburbs</SelectItem>
               {suburbs.map((s) => (
                 <SelectItem key={s} value={s}>{s}</SelectItem>
               ))}
@@ -88,12 +91,15 @@ export function Filters({ filters, onFilterChange, suburbs, propertyTypes, onClo
         {/* Property Type */}
         <div className="space-y-2">
           <Label>Property Type</Label>
-          <Select value={filters.propertyType} onValueChange={(v) => updateFilter('propertyType', v)}>
+          <Select 
+            value={filters.propertyType || '__all__'} 
+            onValueChange={(v) => updateFilter('propertyType', v === '__all__' ? '' : v)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="All types" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All types</SelectItem>
+              <SelectItem value="__all__">All types</SelectItem>
               {propertyTypes.map((t) => (
                 <SelectItem key={t} value={t}>{t}</SelectItem>
               ))}
@@ -121,12 +127,15 @@ export function Filters({ filters, onFilterChange, suburbs, propertyTypes, onClo
         {/* Max Price */}
         <div className="space-y-2">
           <Label>Max Price</Label>
-          <Select value={filters.maxPrice ? String(filters.maxPrice) : ''} onValueChange={(v) => updateFilter('maxPrice', v ? Number(v) : null)}>
+          <Select 
+            value={filters.maxPrice ? String(filters.maxPrice) : '__none__'} 
+            onValueChange={(v) => updateFilter('maxPrice', v === '__none__' ? null : Number(v))}
+          >
             <SelectTrigger>
               <SelectValue placeholder="No limit" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">No limit</SelectItem>
+              <SelectItem value="__none__">No limit</SelectItem>
               <SelectItem value="1000000">$1M</SelectItem>
               <SelectItem value="1250000">$1.25M</SelectItem>
               <SelectItem value="1500000">$1.5M</SelectItem>
