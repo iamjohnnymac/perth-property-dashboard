@@ -1,4 +1,4 @@
-import { ExternalLink, Bed, Bath, Car, Maximize, Waves, TrendingDown, MapPin, Clock, Star } from 'lucide-react';
+import { ExternalLink, Bed, Bath, Car, Maximize, Waves, TrendingDown, MapPin, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -154,7 +154,6 @@ function getBeachDistance(lat: number, lng: number): number {
   // Perth coastline runs roughly along 115.745 longitude
   const coastLng = 115.745;
   const R = 6371; // Earth radius in km
-  const dLat = 0;
   const dLng = (coastLng - lng) * Math.PI / 180;
   const a = Math.cos(lat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) *
     Math.sin(dLng / 2) * Math.sin(dLng / 2);

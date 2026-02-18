@@ -135,12 +135,12 @@ function App() {
   }, [properties, filters, suburbAvgPrices]);
 
   const suburbs = useMemo(() => {
-    const s = new Set(properties.map((p) => p.suburb).filter(Boolean));
+    const s = new Set(properties.map((p) => p.suburb).filter((x): x is string => Boolean(x)));
     return Array.from(s).sort();
   }, [properties]);
 
   const propertyTypes = useMemo(() => {
-    const t = new Set(properties.map((p) => p.property_type).filter(Boolean));
+    const t = new Set(properties.map((p) => p.property_type).filter((x): x is string => Boolean(x)));
     return Array.from(t).sort();
   }, [properties]);
 
