@@ -35,6 +35,8 @@ export interface Property {
   longitude: number | null
   created_at: string | null
   updated_at: string | null
+  agent_name: string | null
+  agency_name: string | null
   // Computed fields (not in DB but can be calculated)
   beach_distance_km?: number | null
 }

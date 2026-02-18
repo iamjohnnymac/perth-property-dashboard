@@ -1,4 +1,4 @@
-import { ExternalLink, Bed, Bath, Car, Maximize, Waves, TrendingDown, MapPin, Clock } from 'lucide-react';
+import { ExternalLink, Bed, Bath, Car, Maximize, Waves, TrendingDown, MapPin, Clock, User } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -105,9 +105,21 @@ export function PropertyCard({ property }: PropertyCardProps) {
         <p className="font-medium text-sm mb-1 line-clamp-1" title={property.address}>
           {property.address}
         </p>
-        <p className="text-xs text-muted-foreground mb-3">
+        <p className="text-xs text-muted-foreground mb-2">
           {property.suburb}
         </p>
+
+        {/* Agent/Agency */}
+        {(property.agent_name || property.agency_name) && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
+            <User className="h-3 w-3 flex-shrink-0" />
+            <span className="line-clamp-1">
+              {property.agent_name && property.agency_name
+                ? `${property.agent_name} · ${property.agency_name}`
+                : property.agent_name || property.agency_name}
+            </span>
+          </div>
+        )}
 
         {/* Features */}
         <div className="flex items-center gap-3 text-sm text-muted-foreground mb-4">
