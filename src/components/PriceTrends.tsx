@@ -57,7 +57,7 @@ function formatPrice(value: number): string {
 }
 
 function titleCase(str: string): string {
-  return str.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
 export function PriceTrends() {
@@ -68,21 +68,12 @@ export function PriceTrends() {
   const [propertyType, setPropertyType] = useState<string>('house');
   const [period, setPeriod] = useState<number>(36);
 
-  // Fetch available suburbs on mount
+  // Fetch available suburbs on mount using DB function to avoid row limit issues
   useEffect(() => {
     async function fetchSuburbs() {
-      const { data } = await supabase
-        .from('sold_properties')
-        .select('suburb')
-        .gt('sold_price', 0)
-        .not('sold_date', 'is', null)
-        .range(0, 4999);
-
+      const { data } = await supabase.rpc('get_distinct_sold_suburbs');
       if (data) {
-        const unique = Array.from(
-          new Set(data.map((r: { suburb: string }) => r.suburb).filter(Boolean))
-        ).sort() as string[];
-        setAvailableSuburbs(unique);
+        setAvailableSuburbs((data as { suburb: string }[]).map((r) => r.suburb));
       }
     }
     fetchSuburbs();
@@ -116,15 +107,7 @@ export function PriceTrends() {
         .range(0, 4999);
 
       if (propertyType !== 'all') {
-        const typeMap: Record<string, string[]> = {
-          house: ['House', 'SemiDetached', 'Duplex', 'NewHouseLand'],
-          unit: ['ApartmentUnitFlat', 'NewApartments', 'Penthouse', 'BlockOfUnits', 'Villa'],
-          townhouse: ['Townhouse'],
-        };
-        const types = typeMap[propertyType] || [];
-        if (types.length) {
-          query = query.in('property_type', types);
-        }
+        query = query.eq('property_type', propertyType);
       }
 
       const { data } = await query;
