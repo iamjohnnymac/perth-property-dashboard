@@ -107,7 +107,15 @@ export function PriceTrends() {
         .range(0, 4999);
 
       if (propertyType !== 'all') {
-        query = query.eq('property_type', propertyType);
+        const typeMap: Record<string, string[]> = {
+          house: ['House'],
+          unit: ['ApartmentUnitFlat', 'NewApartments'],
+          townhouse: ['Townhouse'],
+        };
+        const mapped = typeMap[propertyType] || [propertyType];
+        query = mapped.length === 1
+          ? query.eq('property_type', mapped[0])
+          : query.in('property_type', mapped);
       }
 
       const { data } = await query;
