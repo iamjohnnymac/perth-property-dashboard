@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { supabase, type Property } from './lib/supabase';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -101,6 +101,67 @@ function formatInspectionTime(open: Date, close: Date): string {
   const openTime = open.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase().replace(' ', '');
   const closeTime = close.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase().replace(' ', '');
   return `${dayStr}, ${openTime} – ${closeTime}`;
+}
+
+
+// Geolocation control - flies map to user's current location
+function LocateControl() {
+  const map = useMap();
+  const [locating, setLocating] = useState(false);
+  const handleLocate = () => {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        map.flyTo([pos.coords.latitude, pos.coords.longitude], 15, { animate: true, duration: 1.5 });
+        // Drop a pulse marker at user's location
+        const userIcon = L.divIcon({
+          className: '',
+          html: `<div style="width:16px;height:16px;border-radius:50%;background:#3b82f6;border:3px solid white;box-shadow:0 0 0 4px rgba(59,130,246,0.3);"></div>`,
+          iconSize: [16, 16],
+          iconAnchor: [8, 8],
+        });
+        L.marker([pos.coords.latitude, pos.coords.longitude], { icon: userIcon })
+          .addTo(map)
+          .bindPopup('<b>You are here</b>')
+          .openPopup();
+        setLocating(false);
+      },
+      () => setLocating(false),
+      { timeout: 10000 }
+    );
+  };
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        bottom: '80px',
+        right: '10px',
+        zIndex: 1000,
+      }}
+    >
+      <button
+        onClick={handleLocate}
+        title="Go to my location"
+        style={{
+          width: '34px',
+          height: '34px',
+          borderRadius: '6px',
+          background: 'white',
+          border: '2px solid rgba(0,0,0,0.2)',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '18px',
+          boxShadow: '0 1px 5px rgba(0,0,0,0.2)',
+          opacity: locating ? 0.6 : 1,
+        }}
+      >
+        {locating ? '⏳' : '⊕'}
+      </button>
+    </div>
+  );
 }
 
 function App() {
@@ -379,6 +440,7 @@ function App() {
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
                       url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
                     />
+                    <LocateControl />
                     {filteredProperties
                       .filter((p) => p.latitude && p.longitude && Math.abs(p.latitude! % 1) > 0.001)
                       .map((property) => {
@@ -433,7 +495,7 @@ function App() {
                 </CardContent>
               </Card>
               {/* Property count badge */}
-              <div className="absolute top-3 left-3 z-[1000] bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-md border border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-1.5">
+              <div className="absolute top-3 right-3 z-[1000] bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-md border border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-1.5">
                 <span>📍</span>
                 <span>{filteredProperties.filter(p => p.latitude && p.longitude && Math.abs(p.latitude! % 1) > 0.001).length} properties</span>
               </div>
