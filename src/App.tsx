@@ -6,6 +6,7 @@ import { Footer } from './components/Footer';
 import { HeroStats } from './components/HeroStats';
 import { PropertyCard } from './components/PropertyCard';
 import { Filters } from './components/Filters';
+import { PriceTrends } from './components/PriceTrends';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Button } from './components/ui/button';
 import { Badge } from './components/ui/badge';
@@ -105,7 +106,7 @@ function formatInspectionTime(open: Date, close: Date): string {
 function App() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeView, setActiveView] = useState<'grid' | 'map' | 'investor' | 'inspections'>('grid');
+  const [activeView, setActiveView] = useState<'grid' | 'map' | 'investor' | 'inspections' | 'trends'>('grid');
   const [isDark, setIsDark] = useState(false);
   const [favourites, setFavourites] = useState<Set<string | number>>(() => loadFavourites());
   const [filters, setFilters] = useState<FilterState>({
@@ -505,6 +506,10 @@ function App() {
                 ))
               )}
             </div>
+          )}
+
+          {activeView === 'trends' && (
+            <PriceTrends />
           )}
 
           {activeView === 'investor' && (

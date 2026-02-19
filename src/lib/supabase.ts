@@ -21,6 +21,7 @@ export interface Property {
   under_offer: boolean
   property_type: string | null
   first_seen_date: string | null
+  last_seen_date: string | null
   latitude: number | null
   longitude: number | null
   original_price: number | null
