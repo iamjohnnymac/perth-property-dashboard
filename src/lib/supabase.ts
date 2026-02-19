@@ -6,39 +6,32 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export interface Property {
-  id: string
+  id: number
   address: string
   suburb: string
-  postcode: string | null
   bedrooms: number
   bathrooms: number
   car_spaces: number
   land_size: number | null
-  floor_area: number | null
   price_display: string | null
   price_numeric: number | null
   url: string
-  source: string | null
-  status: string | null
-  under_offer: boolean
-  pool: boolean
-  inspection_times: string | null
   photo_url: string | null
+  pool: boolean
+  under_offer: boolean
   property_type: string | null
   first_seen_date: string | null
-  last_seen_date: string | null
-  last_emailed_at: string | null
-  original_price: number | null
-  price_drop_amount: number | null
-  price_drop_date: string | null
   latitude: number | null
   longitude: number | null
-  created_at: string | null
-  updated_at: string | null
+  original_price: number | null
+  price_drop_amount: number | null
+  beach_distance_km: number | null
+  motivation_score: number | null
+  status: string
   agent_name: string | null
   agency_name: string | null
-  // Computed fields (not in DB but can be calculated)
-  beach_distance_km?: number | null
+  inspection_open_time: string | null
+  inspection_close_time: string | null
 }
 
 export interface Comparable {

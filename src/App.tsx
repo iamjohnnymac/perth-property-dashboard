@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { supabase, type Property } from './lib/supabase';
 import { Navbar } from './components/Navbar';
@@ -14,7 +14,7 @@ import {
   SheetContent,
   SheetTrigger,
 } from './components/ui/sheet';
-import { SlidersHorizontal, ExternalLink, TrendingUp, Building2 } from 'lucide-react';
+import { SlidersHorizontal, ExternalLink, TrendingUp, Building2, CalendarDays, Bed, Bath, Car, Clock } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import './App.css';
@@ -38,15 +38,76 @@ export interface FilterState {
   hideLand: boolean;
   bestValue: boolean;
   motivatedSeller: boolean;
+  favouritesOnly: boolean;
 }
 
 const BUDGET = 1740000;
+const FAVOURITES_KEY = 'perth-favourites';
+
+function loadFavourites(): Set<string | number> {
+  try {
+    const stored = localStorage.getItem(FAVOURITES_KEY);
+    if (stored) {
+      const arr = JSON.parse(stored);
+      return new Set(arr);
+    }
+  } catch {
+    // ignore
+  }
+  return new Set();
+}
+
+function saveFavourites(favs: Set<string | number>) {
+  localStorage.setItem(FAVOURITES_KEY, JSON.stringify(Array.from(favs)));
+}
+
+interface InspectionGroup {
+  label: string;
+  inspections: {
+    property: Property;
+    openTime: Date;
+    closeTime: Date;
+  }[];
+}
+
+function getInspectionGroupLabel(date: Date, now: Date): string {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.floor((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Tomorrow';
+
+  const todayDay = today.getDay(); // 0=Sun
+  const targetDay = target.getDay();
+  // "This Weekend" = upcoming Sat/Sun in the same week
+  if ((targetDay === 0 || targetDay === 6) && diffDays <= (7 - todayDay)) return 'This Weekend';
+
+  // "Next Week" = Mon-Sun of the following week
+  const daysUntilNextMonday = ((8 - todayDay) % 7) || 7;
+  const nextMonday = new Date(today);
+  nextMonday.setDate(today.getDate() + daysUntilNextMonday);
+  const nextSunday = new Date(nextMonday);
+  nextSunday.setDate(nextMonday.getDate() + 6);
+
+  if (target >= nextMonday && target <= nextSunday) return 'Next Week';
+
+  return 'Later';
+}
+
+function formatInspectionTime(open: Date, close: Date): string {
+  const dayStr = open.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+  const openTime = open.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase().replace(' ', '');
+  const closeTime = close.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase().replace(' ', '');
+  return `${dayStr}, ${openTime} \u2013 ${closeTime}`;
+}
 
 function App() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeView, setActiveView] = useState<'grid' | 'map' | 'investor'>('grid');
+  const [activeView, setActiveView] = useState<'grid' | 'map' | 'investor' | 'inspections'>('grid');
   const [isDark, setIsDark] = useState(false);
+  const [favourites, setFavourites] = useState<Set<string | number>>(() => loadFavourites());
   const [filters, setFilters] = useState<FilterState>({
     suburb: '',
     propertyType: '',
@@ -58,6 +119,7 @@ function App() {
     hideLand: true,
     bestValue: false,
     motivatedSeller: false,
+    favouritesOnly: false,
   });
 
   useEffect(() => {
@@ -81,42 +143,22 @@ function App() {
     document.documentElement.classList.toggle('dark', isDark);
   }, [isDark]);
 
-  // Helper: check if a property is "best value" (price 15%+ below suburb average)
-  function isBestValue(p: Property, suburbAvgPrices: Record<string, number>): boolean {
-    if (!p.price_numeric || !p.suburb) return false;
-    const avg = suburbAvgPrices[p.suburb];
-    if (!avg) return false;
-    return p.price_numeric < avg * 0.85;
-  }
+  // Save favourites to localStorage whenever they change
+  useEffect(() => {
+    saveFavourites(favourites);
+  }, [favourites]);
 
-  // Helper: check if seller appears motivated
-  function isMotivatedSeller(p: Property): boolean {
-    const priceText = (p.price_display || '').toLowerCase();
-    const hasMotivatedPrice = priceText.includes('offer') || priceText.includes('negotiable') || priceText.includes('must sell') || priceText.includes('reduced');
-    const daysOnMarket = p.first_seen_date 
-      ? Math.floor((Date.now() - new Date(p.first_seen_date).getTime()) / (1000 * 60 * 60 * 24))
-      : 0;
-    const longListing = daysOnMarket > 60;
-    const hasPriceDrop = (p.price_drop_amount || 0) > 0;
-    return hasMotivatedPrice || longListing || hasPriceDrop;
-  }
-
-  // Calculate suburb average prices for best value computation
-  const suburbAvgPrices = useMemo(() => {
-    const avgs: Record<string, number> = {};
-    const suburbPrices: Record<string, number[]> = {};
-    properties.forEach((p) => {
-      if (!p.suburb || !p.price_numeric) return;
-      if (!suburbPrices[p.suburb]) suburbPrices[p.suburb] = [];
-      suburbPrices[p.suburb].push(p.price_numeric);
-    });
-    Object.entries(suburbPrices).forEach(([suburb, prices]) => {
-      if (prices.length > 0) {
-        avgs[suburb] = Math.round(prices.reduce((a, b) => a + b, 0) / prices.length);
+  const handleToggleFavourite = useCallback((id: string | number) => {
+    setFavourites((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
       }
+      return next;
     });
-    return avgs;
-  }, [properties]);
+  }, []);
 
   const filteredProperties = useMemo(() => {
     return properties.filter((p) => {
@@ -128,33 +170,33 @@ function App() {
       if (filters.underBudget && (!p.price_numeric || p.price_numeric > BUDGET)) return false;
       if (filters.availableOnly && p.under_offer) return false;
       if (filters.hideLand && (p.property_type === 'Land' || (p.bedrooms || 0) === 0)) return false;
-      if (filters.bestValue && !isBestValue(p, suburbAvgPrices)) return false;
-      if (filters.motivatedSeller && !isMotivatedSeller(p)) return false;
+      if (filters.bestValue && (p.motivation_score || 0) < 3) return false;
+      if (filters.motivatedSeller && (p.motivation_score || 0) < 3) return false;
+      if (filters.favouritesOnly && !favourites.has(p.id)) return false;
       return true;
     });
-  }, [properties, filters, suburbAvgPrices]);
+  }, [properties, filters, favourites]);
 
   const suburbs = useMemo(() => {
-    const s = new Set(properties.map((p) => p.suburb).filter((x): x is string => Boolean(x)));
+    const s = new Set(properties.map((p) => p.suburb).filter(Boolean));
     return Array.from(s).sort();
   }, [properties]);
 
   const propertyTypes = useMemo(() => {
-    const t = new Set(properties.map((p) => p.property_type).filter((x): x is string => Boolean(x)));
+    const t = new Set(properties.map((p) => p.property_type).filter(Boolean));
     return Array.from(t).sort();
   }, [properties]);
 
-  // BUG FIX #1: Stats now use filteredProperties and correct field name (pool not has_pool)
   const stats = useMemo(() => {
+    const available = properties.filter((p) => !p.under_offer && p.property_type !== 'Land' && (p.bedrooms || 0) > 0);
     return {
-      total: filteredProperties.length,
-      withPools: filteredProperties.filter((p) => p.pool).length,
-      underBudget: filteredProperties.filter((p) => p.price_numeric && p.price_numeric <= BUDGET).length,
-      underOffer: filteredProperties.filter((p) => p.under_offer).length,
+      total: available.length,
+      withPools: available.filter((p) => p.pool).length,
+      underBudget: available.filter((p) => p.price_numeric && p.price_numeric <= BUDGET).length,
+      underOffer: properties.filter((p) => p.under_offer).length,
     };
-  }, [filteredProperties]);
+  }, [properties]);
 
-  // BUG FIX #2: Suburb stats use correct field name (pool not has_pool)
   const suburbStats = useMemo(() => {
     const statsMap: Record<string, { count: number; prices: number[]; pools: number }> = {};
     filteredProperties.forEach((p) => {
@@ -175,8 +217,39 @@ function App() {
         avgPrice: data.prices.length ? Math.round(data.prices.reduce((a, b) => a + b, 0) / data.prices.length) : null,
         pools: data.pools,
       }))
-      .sort((a, b) => b.listings - a.listings);
+      .sort((a, b) => (a.medianPrice || 0) - (b.medianPrice || 0));
   }, [filteredProperties]);
+
+  // Inspection groups
+  const inspectionGroups = useMemo(() => {
+    const now = new Date();
+    const inspections: { property: Property; openTime: Date; closeTime: Date }[] = [];
+
+    properties.forEach((p) => {
+      if (p.inspection_open_time && p.inspection_close_time) {
+        const openTime = new Date(p.inspection_open_time);
+        const closeTime = new Date(p.inspection_close_time);
+        if (openTime > now) {
+          inspections.push({ property: p, openTime, closeTime });
+        }
+      }
+    });
+
+    inspections.sort((a, b) => a.openTime.getTime() - b.openTime.getTime());
+
+    const groupOrder = ['Today', 'Tomorrow', 'This Weekend', 'Next Week', 'Later'];
+    const groupMap: Record<string, InspectionGroup> = {};
+
+    inspections.forEach((insp) => {
+      const label = getInspectionGroupLabel(insp.openTime, now);
+      if (!groupMap[label]) {
+        groupMap[label] = { label, inspections: [] };
+      }
+      groupMap[label].inspections.push(insp);
+    });
+
+    return groupOrder.filter((l) => groupMap[l]).map((l) => groupMap[l]);
+  }, [properties]);
 
   if (loading) {
     return (
@@ -207,13 +280,12 @@ function App() {
               <h1 className="text-3xl md:text-4xl font-bold mb-2">
                 Perth Property Tracker
               </h1>
-              {/* BUG FIX #3: Dynamic property count from actual data */}
               <p className="text-muted-foreground">
-                Monitoring {properties.filter((p) => !p.under_offer && p.property_type !== 'Land' && (p.bedrooms || 0) > 0).length} properties across 27 suburbs. Updated twice daily.
+                Monitoring {stats.total} properties across 27 suburbs. Updated twice daily.
               </p>
             </div>
             <HeroStats
-              totalProperties={stats.total}
+              totalProperties={filteredProperties.length}
               withPools={stats.withPools}
               underBudget={stats.underBudget}
               underOffer={stats.underOffer}
@@ -234,6 +306,7 @@ function App() {
                     onFilterChange={setFilters}
                     suburbs={suburbs}
                     propertyTypes={propertyTypes}
+                    favouriteCount={favourites.size}
                   />
                 </div>
               </aside>
@@ -256,6 +329,7 @@ function App() {
                         suburbs={suburbs}
                         propertyTypes={propertyTypes}
                         isMobile
+                        favouriteCount={favourites.size}
                       />
                     </SheetContent>
                   </Sheet>
@@ -269,7 +343,12 @@ function App() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {filteredProperties.map((property) => (
-                    <PropertyCard key={property.id} property={property} />
+                    <PropertyCard
+                      key={property.id}
+                      property={property}
+                      isFavourite={favourites.has(property.id)}
+                      onToggleFavourite={handleToggleFavourite}
+                    />
                   ))}
                 </div>
 
@@ -308,9 +387,9 @@ function App() {
                         <Popup>
                           <div className="max-w-xs">
                             <p className="font-bold text-sm">{property.address}</p>
-                            <p className="text-primary font-medium">{property.price_display || 'Price on request'}</p>
+                            <p className="text-primary font-medium">{property.price_display}</p>
                             <p className="text-xs text-muted-foreground mb-2">
-                              {property.bedrooms} bed · {property.bathrooms} bath · {property.car_spaces} car
+                              {property.bedrooms} bed \u00b7 {property.bathrooms} bath \u00b7 {property.car_spaces} car
                             </p>
                             <a
                               href={property.url}
@@ -328,6 +407,104 @@ function App() {
                 </MapContainer>
               </CardContent>
             </Card>
+          )}
+
+          {activeView === 'inspections' && (
+            <div className="space-y-6 max-w-4xl mx-auto">
+              <div className="flex items-center gap-2 mb-2">
+                <CalendarDays className="h-6 w-6 text-primary" />
+                <h2 className="text-2xl font-bold">Upcoming Inspections</h2>
+              </div>
+
+              {inspectionGroups.length === 0 ? (
+                <Card className="text-center py-12">
+                  <CardContent>
+                    <CalendarDays className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-lg font-medium">No upcoming inspections</p>
+                    <p className="text-muted-foreground">
+                      New inspection times are scraped twice daily. Check back soon!
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                inspectionGroups.map((group) => (
+                  <div key={group.label}>
+                    <h3 className="text-lg font-semibold mb-3 text-primary">{group.label}</h3>
+                    <div className="space-y-3">
+                      {group.inspections.map((insp) => (
+                        <Card key={`${insp.property.id}-${insp.openTime.toISOString()}`} className="overflow-hidden hover:shadow-md transition-shadow">
+                          <div className="flex flex-col sm:flex-row">
+                            {/* Property Photo */}
+                            <div className="sm:w-48 sm:h-36 h-40 flex-shrink-0 bg-muted overflow-hidden">
+                              {insp.property.photo_url ? (
+                                <img
+                                  src={insp.property.photo_url}
+                                  alt={insp.property.address}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                                  <Building2 className="h-8 w-8" />
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Details */}
+                            <CardContent className="flex-1 p-4 flex flex-col justify-between">
+                              <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Clock className="h-4 w-4 text-primary" />
+                                  <span className="font-semibold text-sm text-primary">
+                                    {formatInspectionTime(insp.openTime, insp.closeTime)}
+                                  </span>
+                                </div>
+                                <p className="font-medium text-sm line-clamp-1" title={insp.property.address}>
+                                  {insp.property.address}
+                                </p>
+                                <p className="text-xs text-muted-foreground mb-2">
+                                  {insp.property.suburb}
+                                </p>
+                                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                  <span className="font-semibold text-sm text-foreground">
+                                    {insp.property.price_display || 'Price on request'}
+                                  </span>
+                                  {insp.property.bedrooms && (
+                                    <span className="flex items-center gap-1">
+                                      <Bed className="h-3 w-3" />
+                                      {insp.property.bedrooms}
+                                    </span>
+                                  )}
+                                  {insp.property.bathrooms && (
+                                    <span className="flex items-center gap-1">
+                                      <Bath className="h-3 w-3" />
+                                      {insp.property.bathrooms}
+                                    </span>
+                                  )}
+                                  {insp.property.car_spaces && (
+                                    <span className="flex items-center gap-1">
+                                      <Car className="h-3 w-3" />
+                                      {insp.property.car_spaces}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="mt-2">
+                                <Button asChild size="sm" variant="outline">
+                                  <a href={insp.property.url} target="_blank" rel="noopener noreferrer">
+                                    View on Domain
+                                    <ExternalLink className="ml-1 h-3 w-3" />
+                                  </a>
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           )}
 
           {activeView === 'investor' && (
@@ -381,18 +558,23 @@ function App() {
               {/* Best Investment Picks */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Best Investment Picks (15%+ Below Suburb Avg)</CardTitle>
+                  <CardTitle>Best Investment Picks</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredProperties
-                      .filter((p) => isBestValue(p, suburbAvgPrices))
+                      .filter((p) => (p.motivation_score || 0) >= 3)
                       .slice(0, 6)
                       .map((property) => (
-                        <PropertyCard key={property.id} property={property} />
+                        <PropertyCard
+                          key={property.id}
+                          property={property}
+                          isFavourite={favourites.has(property.id)}
+                          onToggleFavourite={handleToggleFavourite}
+                        />
                       ))}
                   </div>
-                  {filteredProperties.filter((p) => isBestValue(p, suburbAvgPrices)).length === 0 && (
+                  {filteredProperties.filter((p) => (p.motivation_score || 0) >= 3).length === 0 && (
                     <p className="text-center text-muted-foreground py-8">
                       No best value properties found with current filters
                     </p>

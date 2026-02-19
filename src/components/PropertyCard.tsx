@@ -1,4 +1,4 @@
-import { ExternalLink, Bed, Bath, Car, Maximize, Waves, TrendingDown, MapPin, Clock, User } from 'lucide-react';
+import { ExternalLink, Bed, Bath, Car, Maximize, Waves, TrendingDown, MapPin, Clock, Heart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -6,21 +6,14 @@ import type { Property } from '@/lib/supabase';
 
 interface PropertyCardProps {
   property: Property;
+  isFavourite?: boolean;
+  onToggleFavourite?: (id: string | number) => void;
 }
 
-export function PropertyCard({ property }: PropertyCardProps) {
-  // BUG FIX #4: Show "New" for 0 days instead of "0d"
+export function PropertyCard({ property, isFavourite = false, onToggleFavourite }: PropertyCardProps) {
   const daysOnMarket = property.first_seen_date
     ? Math.floor((Date.now() - new Date(property.first_seen_date).getTime()) / (1000 * 60 * 60 * 24))
     : null;
-
-  const daysLabel = daysOnMarket === null
-    ? null
-    : daysOnMarket === 0
-      ? 'New'
-      : daysOnMarket === 1
-        ? '1d'
-        : `${daysOnMarket}d`;
 
   const priceDropPercent = property.original_price && property.price_numeric && property.price_numeric < property.original_price
     ? Math.round((1 - property.price_numeric / property.original_price) * 100)
@@ -28,7 +21,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow group">
-      {/* Image - BUG FIX #5: Use photo_url (correct DB column) not main_photo_url */}
+      {/* Image */}
       <div className="relative aspect-[4/3] bg-muted overflow-hidden">
         {property.photo_url ? (
           <img
@@ -42,7 +35,24 @@ export function PropertyCard({ property }: PropertyCardProps) {
           </div>
         )}
 
-        {/* Badges - Fixed: pool not has_pool */}
+        {/* Favourite Heart Button */}
+        {onToggleFavourite && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleFavourite(property.id);
+            }}
+            className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-black/30 hover:bg-black/50 transition-colors"
+            aria-label={isFavourite ? 'Remove from favourites' : 'Add to favourites'}
+          >
+            <Heart
+              className={`h-5 w-5 transition-colors ${isFavourite ? 'fill-red-500 text-red-500' : 'text-white'}`}
+            />
+          </button>
+        )}
+
+        {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-wrap gap-1">
           {property.property_type && (
             <Badge variant="secondary" className="text-xs">
@@ -68,12 +78,12 @@ export function PropertyCard({ property }: PropertyCardProps) {
           )}
         </div>
 
-        {/* Beach distance - computed from coordinates */}
-        {property.latitude && property.longitude && getBeachDistance(property.latitude, property.longitude) <= 2 && (
+        {/* Beach distance */}
+        {property.beach_distance_km && (
           <div className="absolute bottom-2 right-2">
             <Badge variant="outline" className="bg-white/90 text-xs">
               <MapPin className="h-3 w-3 mr-1" />
-              {getBeachDistance(property.latitude, property.longitude).toFixed(1)}km to beach
+              {property.beach_distance_km.toFixed(1)}km to beach
             </Badge>
           </div>
         )}
@@ -81,7 +91,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
 
       {/* Content */}
       <CardContent className="p-4">
-        {/* Price - Fixed: use price_display not price */}
+        {/* Price */}
         <div className="flex items-start justify-between mb-2">
           <div>
             <p className="font-bold text-lg text-primary">
@@ -93,10 +103,10 @@ export function PropertyCard({ property }: PropertyCardProps) {
               </p>
             )}
           </div>
-          {daysLabel && (
+          {daysOnMarket !== null && (
             <Badge variant="outline" className="text-xs">
               <Clock className="h-3 w-3 mr-1" />
-              {daysLabel}
+              {daysOnMarket}d
             </Badge>
           )}
         </div>
@@ -105,21 +115,9 @@ export function PropertyCard({ property }: PropertyCardProps) {
         <p className="font-medium text-sm mb-1 line-clamp-1" title={property.address}>
           {property.address}
         </p>
-        <p className="text-xs text-muted-foreground mb-2">
+        <p className="text-xs text-muted-foreground mb-3">
           {property.suburb}
         </p>
-
-        {/* Agent/Agency */}
-        {(property.agent_name || property.agency_name) && (
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
-            <User className="h-3 w-3 flex-shrink-0" />
-            <span className="line-clamp-1">
-              {property.agent_name && property.agency_name
-                ? `${property.agent_name} · ${property.agency_name}`
-                : property.agent_name || property.agency_name}
-            </span>
-          </div>
-        )}
 
         {/* Features */}
         <div className="flex items-center gap-3 text-sm text-muted-foreground mb-4">
@@ -149,7 +147,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
           )}
         </div>
 
-        {/* CTA - Fixed: use url not domain_url */}
+        {/* CTA */}
         <Button asChild className="w-full" variant="default">
           <a href={property.url} target="_blank" rel="noopener noreferrer">
             View on Domain
@@ -159,18 +157,6 @@ export function PropertyCard({ property }: PropertyCardProps) {
       </CardContent>
     </Card>
   );
-}
-
-// Beach distance calculation using Perth coastline reference
-function getBeachDistance(lat: number, lng: number): number {
-  // Perth coastline runs roughly along 115.745 longitude
-  const coastLng = 115.745;
-  const R = 6371; // Earth radius in km
-  const dLng = (coastLng - lng) * Math.PI / 180;
-  const a = Math.cos(lat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) *
-    Math.sin(dLng / 2) * Math.sin(dLng / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
 }
 
 function Building2(props: React.SVGProps<SVGSVGElement>) {

@@ -1,4 +1,4 @@
-import { Filter, X } from 'lucide-react';
+import { Filter, X, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -10,19 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-export interface FilterState {
-  suburb: string;
-  propertyType: string;
-  minBeds: number;
-  maxPrice: number | null;
-  poolOnly: boolean;
-  underBudget: boolean;
-  availableOnly: boolean;
-  hideLand: boolean;
-  bestValue: boolean;
-  motivatedSeller: boolean;
-}
+import type { FilterState } from '@/App';
 
 interface FiltersProps {
   filters: FilterState;
@@ -31,9 +19,10 @@ interface FiltersProps {
   propertyTypes: string[];
   onClose?: () => void;
   isMobile?: boolean;
+  favouriteCount?: number;
 }
 
-export function Filters({ filters, onFilterChange, suburbs, propertyTypes, onClose, isMobile }: FiltersProps) {
+export function Filters({ filters, onFilterChange, suburbs, propertyTypes, onClose, isMobile, favouriteCount = 0 }: FiltersProps) {
   const updateFilter = <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
     onFilterChange({ ...filters, [key]: value });
   };
@@ -50,6 +39,7 @@ export function Filters({ filters, onFilterChange, suburbs, propertyTypes, onClo
       hideLand: true,
       bestValue: false,
       motivatedSeller: false,
+      favouritesOnly: false,
     });
   };
 
@@ -72,15 +62,12 @@ export function Filters({ filters, onFilterChange, suburbs, propertyTypes, onClo
         {/* Suburb */}
         <div className="space-y-2">
           <Label>Suburb</Label>
-          <Select 
-            value={filters.suburb || '__all__'} 
-            onValueChange={(v) => updateFilter('suburb', v === '__all__' ? '' : v)}
-          >
+          <Select value={filters.suburb} onValueChange={(v) => updateFilter('suburb', v)}>
             <SelectTrigger>
               <SelectValue placeholder="All suburbs" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__all__">All suburbs</SelectItem>
+              <SelectItem value="">All suburbs</SelectItem>
               {suburbs.map((s) => (
                 <SelectItem key={s} value={s}>{s}</SelectItem>
               ))}
@@ -91,15 +78,12 @@ export function Filters({ filters, onFilterChange, suburbs, propertyTypes, onClo
         {/* Property Type */}
         <div className="space-y-2">
           <Label>Property Type</Label>
-          <Select 
-            value={filters.propertyType || '__all__'} 
-            onValueChange={(v) => updateFilter('propertyType', v === '__all__' ? '' : v)}
-          >
+          <Select value={filters.propertyType} onValueChange={(v) => updateFilter('propertyType', v)}>
             <SelectTrigger>
               <SelectValue placeholder="All types" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__all__">All types</SelectItem>
+              <SelectItem value="">All types</SelectItem>
               {propertyTypes.map((t) => (
                 <SelectItem key={t} value={t}>{t}</SelectItem>
               ))}
@@ -127,15 +111,12 @@ export function Filters({ filters, onFilterChange, suburbs, propertyTypes, onClo
         {/* Max Price */}
         <div className="space-y-2">
           <Label>Max Price</Label>
-          <Select 
-            value={filters.maxPrice ? String(filters.maxPrice) : '__none__'} 
-            onValueChange={(v) => updateFilter('maxPrice', v === '__none__' ? null : Number(v))}
-          >
+          <Select value={filters.maxPrice ? String(filters.maxPrice) : ''} onValueChange={(v) => updateFilter('maxPrice', v ? Number(v) : null)}>
             <SelectTrigger>
               <SelectValue placeholder="No limit" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none__">No limit</SelectItem>
+              <SelectItem value="">No limit</SelectItem>
               <SelectItem value="1000000">$1M</SelectItem>
               <SelectItem value="1250000">$1.25M</SelectItem>
               <SelectItem value="1500000">$1.5M</SelectItem>
@@ -148,6 +129,17 @@ export function Filters({ filters, onFilterChange, suburbs, propertyTypes, onClo
 
         {/* Toggle Switches */}
         <div className="space-y-3 pt-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="favourites" className="cursor-pointer flex items-center gap-1.5">
+              <Heart className="h-4 w-4 text-red-500" />
+              Favourites only
+              {favouriteCount > 0 && (
+                <span className="text-xs text-muted-foreground">({favouriteCount})</span>
+              )}
+            </Label>
+            <Switch id="favourites" checked={filters.favouritesOnly} onCheckedChange={(v) => updateFilter('favouritesOnly', v)} />
+          </div>
+
           <div className="flex items-center justify-between">
             <Label htmlFor="pool" className="cursor-pointer">Pool only</Label>
             <Switch id="pool" checked={filters.poolOnly} onCheckedChange={(v) => updateFilter('poolOnly', v)} />

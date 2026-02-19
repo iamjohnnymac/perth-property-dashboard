@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, Home, Building2, MapPin, TrendingUp, Moon, Sun } from 'lucide-react';
+import { Menu, Home, Building2, MapPin, TrendingUp, Moon, Sun, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -10,8 +10,8 @@ import {
 } from '@/components/ui/sheet';
 
 interface NavbarProps {
-  activeView: 'grid' | 'map' | 'investor';
-  onViewChange: (view: 'grid' | 'map' | 'investor') => void;
+  activeView: 'grid' | 'map' | 'investor' | 'inspections';
+  onViewChange: (view: 'grid' | 'map' | 'investor' | 'inspections') => void;
   isDark: boolean;
   onToggleDark: () => void;
 }
@@ -19,6 +19,7 @@ interface NavbarProps {
 const navItems = [
   { id: 'grid' as const, label: 'Properties', icon: Building2 },
   { id: 'map' as const, label: 'Map', icon: MapPin },
+  { id: 'inspections' as const, label: 'Inspections', icon: CalendarDays },
   { id: 'investor' as const, label: 'Investor', icon: TrendingUp },
 ];
 
