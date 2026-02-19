@@ -368,7 +368,7 @@ function App() {
 
           {activeView === 'map' && (
             <div className="relative">
-              <Card className="h-[600px] overflow-hidden">
+              <Card className="h-[650px] overflow-hidden">
                 <CardContent className="p-0 h-full">
                   <MapContainer
                     center={[-31.89, 115.80]}
@@ -376,8 +376,8 @@ function App() {
                     className="h-full w-full"
                   >
                     <TileLayer
-                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                      url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
                     />
                     {filteredProperties
                       .filter((p) => p.latitude && p.longitude && Math.abs(p.latitude! % 1) > 0.001)
@@ -392,9 +392,9 @@ function App() {
                         const color = typeColors[property.property_type?.toLowerCase() ?? ''] ?? '#6b7280';
                         const markerIcon = L.divIcon({
                           className: '',
-                          html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.4);"></div>`,
-                          iconSize: [14, 14],
-                          iconAnchor: [7, 7],
+                          html: `<div style="width:18px;height:18px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.35);"></div>`,
+                          iconSize: [18, 18],
+                          iconAnchor: [9, 9],
                         });
                         return (
                           <Marker
@@ -402,21 +402,27 @@ function App() {
                             position={[property.latitude!, property.longitude!]}
                             icon={markerIcon}
                           >
-                            <Popup>
-                              <div className="max-w-xs">
-                                <p className="font-bold text-sm">{property.address}</p>
-                                <p className="text-primary font-medium">{property.price_display}</p>
-                                <p className="text-xs text-muted-foreground mb-2">
-                                  {property.bedrooms} bed · {property.bathrooms} bath · {property.car_spaces} car
+                            <Popup maxWidth={240}>
+                              <div style={{width:'220px',fontFamily:'inherit'}}>
+                                {property.photo_url && (
+                                  <img
+                                    src={property.photo_url}
+                                    alt={property.address}
+                                    style={{width:'100%',height:'110px',objectFit:'cover',borderRadius:'6px',marginBottom:'8px',display:'block'}}
+                                  />
+                                )}
+                                <p style={{fontWeight:'700',fontSize:'13px',margin:'0 0 3px',lineHeight:'1.3',color:'#111'}}>{property.address}</p>
+                                <p style={{color:'#f97316',fontWeight:'700',fontSize:'15px',margin:'0 0 4px'}}>{property.price_display}</p>
+                                <p style={{fontSize:'11px',color:'#888',margin:'0 0 8px'}}>
+                                  {property.bedrooms}bd · {property.bathrooms}ba · {property.car_spaces ?? 0}car
                                 </p>
                                 <a
                                   href={property.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                                  style={{fontSize:'12px',color:'#f97316',fontWeight:'600',textDecoration:'none'}}
                                 >
-                                  View on Domain
-                                  <ExternalLink className="h-3 w-3" />
+                                  View on Domain →
                                 </a>
                               </div>
                             </Popup>
@@ -426,6 +432,11 @@ function App() {
                   </MapContainer>
                 </CardContent>
               </Card>
+              {/* Property count badge */}
+              <div className="absolute top-3 left-3 z-[1000] bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-md border border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-1.5">
+                <span>📍</span>
+                <span>{filteredProperties.filter(p => p.latitude && p.longitude && Math.abs(p.latitude! % 1) > 0.001).length} properties</span>
+              </div>
               {/* Map Legend */}
               <div className="absolute bottom-4 right-4 z-[1000] bg-white dark:bg-gray-900 rounded-lg shadow-lg border p-3 text-xs space-y-1.5">
                 <p className="font-semibold text-gray-700 dark:text-gray-300 mb-1">Property Type</p>
