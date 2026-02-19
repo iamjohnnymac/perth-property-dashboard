@@ -31,13 +31,13 @@ export function Navbar({ activeView, onViewChange, isDark, onToggleDark }: Navba
     <header className="sticky border-b top-0 z-40 w-full bg-white dark:border-b-slate-700 dark:bg-background">
       <nav className="container mx-auto h-14 px-4 flex items-center justify-between">
         {/* Logo */}
-        <a href="/" className="font-bold text-xl flex items-center gap-2">
+        <a href="/" className="font-bold text-xl flex items-center gap-2 whitespace-nowrap shrink-0">
           <Home className="h-6 w-6 text-primary" />
           <span>Perth Property</span>
         </a>
 
         {/* Mobile menu */}
-        <div className="flex md:hidden items-center gap-2">
+        <div className="flex lg:hidden items-center gap-2">
           <Button variant="ghost" size="icon" onClick={onToggleDark}>
             {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
@@ -75,7 +75,7 @@ export function Navbar({ activeView, onViewChange, isDark, onToggleDark }: Navba
         </div>
 
         {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-2">
           {navItems.map(({ id, label, icon: Icon }) => (
             <Button
               key={id}
