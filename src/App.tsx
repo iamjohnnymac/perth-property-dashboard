@@ -805,7 +805,7 @@ function App() {
                     </table>
                   </div>
                   <p className="text-xs text-muted-foreground mt-4">
-                    Yield = (Weekly Rent \u00d7 52) \u00f7 Median Ask Price. Rent based on 3-bed houses. Sold data from last 3 months.
+                    Yield = (Weekly Rent x 52) / Median Ask Price. Rent based on 3-bed houses. Sold data from last 3 months.
                   </p>
                 </CardContent>
               </Card>
@@ -872,7 +872,7 @@ function App() {
                   </div>
                   {priceDropProperties.length === 0 && (
                     <p className="text-center text-muted-foreground py-8">
-                      No price drops detected yet \u2014 monitoring twice daily
+                      No price drops detected yet - monitoring twice daily
                     </p>
                   )}
                 </CardContent>
@@ -886,7 +886,7 @@ function App() {
                     Longest on Market
                   </CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    Properties listed longest \u2014 vendors may be more open to negotiation
+                    Properties listed longest - vendors may be more open to negotiation
                   </p>
                 </CardHeader>
                 <CardContent>
