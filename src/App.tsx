@@ -15,7 +15,7 @@ import {
   SheetContent,
   SheetTrigger,
 } from './components/ui/sheet';
-import { SlidersHorizontal, ExternalLink, TrendingUp, Building2, CalendarDays, Bed, Bath, Car, Clock } from 'lucide-react';
+import { SlidersHorizontal, ExternalLink, TrendingUp, Building2, CalendarDays, Bed, Bath, Car, Clock, ArrowDown, Timer, Target } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import './App.css';
@@ -71,6 +71,23 @@ interface InspectionGroup {
   }[];
 }
 
+
+
+interface RentalData {
+  suburb: string;
+  bedrooms: number;
+  property_type: string;
+  median_weekly_rent: number;
+}
+
+interface SuburbSoldStats {
+  suburb: string;
+  median_sold_price: number | null;
+  avg_sold_price: number | null;
+  num_sold: number;
+  median_sold_price_12m: number | null;
+  num_sold_12m: number;
+}
 function getInspectionGroupLabel(date: Date, now: Date): string {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -100,7 +117,7 @@ function formatInspectionTime(open: Date, close: Date): string {
   const dayStr = open.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
   const openTime = open.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase().replace(' ', '');
   const closeTime = close.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase().replace(' ', '');
-  return `${dayStr}, ${openTime} – ${closeTime}`;
+  return `${dayStr}, ${openTime} \u2013 ${closeTime}`;
 }
 
 
@@ -158,7 +175,7 @@ function LocateControl() {
           opacity: locating ? 0.6 : 1,
         }}
       >
-        {locating ? '⏳' : '⊕'}
+        {locating ? '\u23f3' : '\u2295'}
       </button>
     </div>
   );
@@ -166,6 +183,8 @@ function LocateControl() {
 
 function App() {
   const [properties, setProperties] = useState<Property[]>([]);
+  const [rentalData, setRentalData] = useState<RentalData[]>([]);
+  const [soldStats, setSoldStats] = useState<SuburbSoldStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState<'grid' | 'map' | 'investor' | 'inspections' | 'trends'>('grid');
   const [isDark, setIsDark] = useState(false);
@@ -199,6 +218,20 @@ function App() {
       setLoading(false);
     }
     fetchProperties();
+  }, []);
+
+
+  // Fetch investment data (rental + sold stats)
+  useEffect(() => {
+    async function fetchInvestmentData() {
+      const [rentalRes, soldRes] = await Promise.all([
+        supabase.from('rental_data').select('suburb, bedrooms, property_type, median_weekly_rent'),
+        supabase.rpc('get_suburb_investment_stats'),
+      ]);
+      if (rentalRes.data) setRentalData(rentalRes.data);
+      if (soldRes.data) setSoldStats(soldRes.data);
+    }
+    fetchInvestmentData();
   }, []);
 
   useEffect(() => {
@@ -280,6 +313,86 @@ function App() {
         pools: data.pools,
       }))
       .sort((a, b) => (a.medianPrice || 0) - (b.medianPrice || 0));
+  }, [filteredProperties]);
+
+
+  // Investment scorecard combining listings, rental, and sold data
+  const investmentScorecard = useMemo(() => {
+    const rentalLookup: Record<string, number> = {};
+    rentalData.forEach(r => {
+      if (r.bedrooms === 3 && r.property_type === 'house') {
+        rentalLookup[r.suburb.toUpperCase()] = r.median_weekly_rent;
+      }
+    });
+    const soldLookup: Record<string, SuburbSoldStats> = {};
+    soldStats.forEach(s => {
+      soldLookup[s.suburb.toUpperCase()] = s;
+    });
+
+    return suburbStats.map(row => {
+      const key = row.suburb.toUpperCase();
+      const rent = rentalLookup[key];
+      const sold = soldLookup[key];
+      const medianAsk = row.medianPrice;
+      const medianSold = sold?.median_sold_price ? Number(sold.median_sold_price) : null;
+      const grossYield = (rent && medianAsk) ? ((rent * 52) / medianAsk * 100) : null;
+      const askVsSold = (medianAsk && medianSold) ? ((medianAsk - medianSold) / medianSold * 100) : null;
+      const suburbListings = filteredProperties.filter(p => p.suburb?.toUpperCase() === key);
+      const underOfferCount = suburbListings.filter(p => p.under_offer).length;
+      const underOfferRate = suburbListings.length > 0 ? (underOfferCount / suburbListings.length * 100) : 0;
+
+      return {
+        suburb: row.suburb,
+        listings: row.listings,
+        medianAsk,
+        weeklyRent: rent || null,
+        grossYield,
+        medianSold,
+        numSold: sold?.num_sold || 0,
+        askVsSold,
+        underOfferRate,
+        underOfferCount,
+      };
+    }).sort((a, b) => (b.grossYield || 0) - (a.grossYield || 0));
+  }, [suburbStats, rentalData, soldStats, filteredProperties]);
+
+  // Best bargains: properties asking below suburb median sold
+  const bestBargains = useMemo(() => {
+    const soldLookup: Record<string, number> = {};
+    soldStats.forEach(s => {
+      if (s.median_sold_price) soldLookup[s.suburb.toUpperCase()] = Number(s.median_sold_price);
+    });
+    return filteredProperties
+      .filter(p => {
+        if (!p.price_numeric || !p.suburb || p.under_offer) return false;
+        const ms = soldLookup[p.suburb.toUpperCase()];
+        return ms ? p.price_numeric < ms : false;
+      })
+      .map(p => {
+        const ms = soldLookup[p.suburb!.toUpperCase()];
+        return { ...p, discount: ((ms - p.price_numeric!) / ms * 100), medianSold: ms };
+      })
+      .sort((a, b) => b.discount - a.discount)
+      .slice(0, 6);
+  }, [filteredProperties, soldStats]);
+
+  // Price drops sorted by biggest reduction
+  const priceDropProperties = useMemo(() => {
+    return filteredProperties
+      .filter(p => p.price_drop_amount && p.price_drop_amount > 0)
+      .sort((a, b) => (b.price_drop_amount || 0) - (a.price_drop_amount || 0));
+  }, [filteredProperties]);
+
+  // Longest listed (most negotiable vendors)
+  const longestListed = useMemo(() => {
+    return filteredProperties
+      .filter(p => p.first_seen_date && !p.under_offer)
+      .map(p => ({
+        ...p,
+        daysOnMarket: Math.floor((Date.now() - new Date(p.first_seen_date!).getTime()) / (1000 * 60 * 60 * 24)),
+      }))
+      .sort((a, b) => b.daysOnMarket - a.daysOnMarket)
+      .slice(0, 6);
   }, [filteredProperties]);
 
   // Inspection groups
@@ -476,7 +589,7 @@ function App() {
                                 <p style={{fontWeight:'700',fontSize:'13px',margin:'0 0 3px',lineHeight:'1.3',color:'#111'}}>{property.address}</p>
                                 <p style={{color:'#f97316',fontWeight:'700',fontSize:'15px',margin:'0 0 4px'}}>{property.price_display}</p>
                                 <p style={{fontSize:'11px',color:'#888',margin:'0 0 8px'}}>
-                                  {property.bedrooms}bd · {property.bathrooms}ba · {property.car_spaces ?? 0}car
+                                  {property.bedrooms}bd \u00b7 {property.bathrooms}ba \u00b7 {property.car_spaces ?? 0}car
                                 </p>
                                 <a
                                   href={property.url}
@@ -484,7 +597,7 @@ function App() {
                                   rel="noopener noreferrer"
                                   style={{fontSize:'12px',color:'#f97316',fontWeight:'600',textDecoration:'none'}}
                                 >
-                                  View on Domain →
+                                  View on Domain \u2192
                                 </a>
                               </div>
                             </Popup>
@@ -496,7 +609,7 @@ function App() {
               </Card>
               {/* Property count badge */}
               <div className="absolute top-3 right-3 z-[1000] bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-md border border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-1.5">
-                <span>📍</span>
+                <span>\ud83d\udccd</span>
                 <span>{filteredProperties.filter(p => p.latitude && p.longitude && Math.abs(p.latitude! % 1) > 0.001).length} properties</span>
               </div>
               {/* Map Legend */}
@@ -622,74 +735,178 @@ function App() {
 
           {activeView === 'investor' && (
             <div className="space-y-8">
-              {/* Suburb Stats Table */}
+              {/* Suburb Investment Scorecard */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
-                    Suburb Analysis
+                    Suburb Investment Scorecard
                   </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Yield, growth and demand signals across your target suburbs
+                  </p>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b">
-                          <th className="text-left py-3 px-4 font-medium">Suburb</th>
-                          <th className="text-right py-3 px-4 font-medium">Listings</th>
-                          <th className="text-right py-3 px-4 font-medium">Median Price</th>
-                          <th className="text-right py-3 px-4 font-medium">Avg Price</th>
-                          <th className="text-right py-3 px-4 font-medium">Pools</th>
+                          <th className="text-left py-3 px-3 font-medium">Suburb</th>
+                          <th className="text-right py-3 px-3 font-medium">Listings</th>
+                          <th className="text-right py-3 px-3 font-medium">Median Ask</th>
+                          <th className="text-right py-3 px-3 font-medium">Rent/wk</th>
+                          <th className="text-right py-3 px-3 font-medium">Yield</th>
+                          <th className="text-right py-3 px-3 font-medium">Sold (3m)</th>
+                          <th className="text-right py-3 px-3 font-medium">Ask vs Sold</th>
+                          <th className="text-right py-3 px-3 font-medium">Under Offer</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {suburbStats.map((row) => (
+                        {investmentScorecard.map((row) => (
                           <tr key={row.suburb} className="border-b hover:bg-muted/50">
-                            <td className="py-3 px-4 font-medium">{row.suburb}</td>
-                            <td className="text-right py-3 px-4">{row.listings}</td>
-                            <td className="text-right py-3 px-4">
-                              {row.medianPrice ? `$${(row.medianPrice / 1000000).toFixed(2)}M` : '-'}
+                            <td className="py-3 px-3 font-medium">{row.suburb}</td>
+                            <td className="text-right py-3 px-3">{row.listings}</td>
+                            <td className="text-right py-3 px-3">
+                              {row.medianAsk ? `$${(row.medianAsk / 1000000).toFixed(2)}M` : '-'}
                             </td>
-                            <td className="text-right py-3 px-4">
-                              {row.avgPrice ? `$${(row.avgPrice / 1000000).toFixed(2)}M` : '-'}
+                            <td className="text-right py-3 px-3">
+                              {row.weeklyRent ? `$${row.weeklyRent}` : '-'}
                             </td>
-                            <td className="text-right py-3 px-4">
-                              {row.pools > 0 && (
-                                <Badge variant="secondary" className="bg-cyan-100 text-cyan-700">
-                                  {row.pools}
+                            <td className="text-right py-3 px-3">
+                              {row.grossYield ? (
+                                <Badge variant="secondary" className={
+                                  row.grossYield >= 4 ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
+                                  row.grossYield >= 3 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' :
+                                  'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                                }>
+                                  {row.grossYield.toFixed(1)}%
                                 </Badge>
-                              )}
+                              ) : '-'}
+                            </td>
+                            <td className="text-right py-3 px-3">
+                              {row.medianSold ? `$${(row.medianSold / 1000000).toFixed(2)}M` : '-'}
+                              {row.numSold > 0 && <span className="text-xs text-muted-foreground ml-1">({row.numSold})</span>}
+                            </td>
+                            <td className="text-right py-3 px-3">
+                              {row.askVsSold !== null ? (
+                                <span className={row.askVsSold > 0 ? 'text-red-500 font-medium' : 'text-green-500 font-medium'}>
+                                  {row.askVsSold > 0 ? '\u2191' : '\u2193'} {Math.abs(row.askVsSold).toFixed(0)}%
+                                </span>
+                              ) : '-'}
+                            </td>
+                            <td className="text-right py-3 px-3">
+                              {row.underOfferRate > 0 ? (
+                                <span className="text-orange-500">{row.underOfferRate.toFixed(0)}%</span>
+                              ) : <span className="text-muted-foreground">0%</span>}
                             </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
+                  <p className="text-xs text-muted-foreground mt-4">
+                    Yield = (Weekly Rent \u00d7 52) \u00f7 Median Ask Price. Rent based on 3-bed houses. Sold data from last 3 months.
+                  </p>
                 </CardContent>
               </Card>
 
-              {/* Best Investment Picks */}
+              {/* Best Bargains */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Best Investment Picks</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-5 w-5" />
+                    Best Bargains
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Properties asking below their suburb's recent median sold price
+                  </p>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredProperties
-                      .filter((p) => (p.motivation_score || 0) >= 3)
-                      .slice(0, 6)
-                      .map((property) => (
+                    {bestBargains.map((property) => (
+                      <div key={property.id} className="relative">
+                        <Badge className="absolute top-2 left-2 z-10 bg-green-600 text-white shadow-md">
+                          {property.discount.toFixed(0)}% below median
+                        </Badge>
                         <PropertyCard
-                          key={property.id}
                           property={property}
                           isFavourite={favourites.has(property.id)}
                           onToggleFavourite={handleToggleFavourite}
                         />
-                      ))}
+                      </div>
+                    ))}
                   </div>
-                  {filteredProperties.filter((p) => (p.motivation_score || 0) >= 3).length === 0 && (
+                  {bestBargains.length === 0 && (
                     <p className="text-center text-muted-foreground py-8">
-                      No best value properties found with current filters
+                      No properties currently priced below their suburb's median sold price
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Price Drops */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ArrowDown className="h-5 w-5" />
+                    Price Drops
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    {priceDropProperties.length} {priceDropProperties.length === 1 ? 'property has' : 'properties have'} reduced asking prices
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {priceDropProperties.slice(0, 6).map((property) => (
+                      <div key={property.id} className="relative">
+                        <Badge className="absolute top-2 left-2 z-10 bg-red-600 text-white shadow-md">
+                          \u2193 ${((property.price_drop_amount || 0) / 1000).toFixed(0)}K
+                        </Badge>
+                        <PropertyCard
+                          property={property}
+                          isFavourite={favourites.has(property.id)}
+                          onToggleFavourite={handleToggleFavourite}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  {priceDropProperties.length === 0 && (
+                    <p className="text-center text-muted-foreground py-8">
+                      No price drops detected yet \u2014 monitoring twice daily
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Longest on Market */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Timer className="h-5 w-5" />
+                    Longest on Market
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Properties listed longest \u2014 vendors may be more open to negotiation
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {longestListed.map((property) => (
+                      <div key={property.id} className="relative">
+                        <Badge className="absolute top-2 left-2 z-10 bg-amber-600 text-white shadow-md">
+                          {property.daysOnMarket} days listed
+                        </Badge>
+                        <PropertyCard
+                          property={property}
+                          isFavourite={favourites.has(property.id)}
+                          onToggleFavourite={handleToggleFavourite}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  {longestListed.length === 0 && (
+                    <p className="text-center text-muted-foreground py-8">
+                      No long-listed properties found with current filters
                     </p>
                   )}
                 </CardContent>
