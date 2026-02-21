@@ -15,7 +15,7 @@ import {
   SheetContent,
   SheetTrigger,
 } from './components/ui/sheet';
-import { SlidersHorizontal, ExternalLink, TrendingUp, Building2, CalendarDays, Bed, Bath, Car, Clock, ArrowDown, Timer, Target, MapPin } from 'lucide-react';
+import { SlidersHorizontal, ExternalLink, TrendingUp, Building2, CalendarDays, Bed, Bath, Car, Clock, ArrowDown, Timer, Target, MapPin, Share2, X } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import './App.css';
@@ -185,6 +185,30 @@ function App() {
   const [soldStats, setSoldStats] = useState<SuburbSoldStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState<'grid' | 'map' | 'investor' | 'inspections' | 'trends'>('grid');
+  const [heroDismissed, setHeroDismissed] = useState(() => {
+    return localStorage.getItem('scopeperth_hero_dismissed') === 'true';
+  });
+
+  const dismissHero = useCallback(() => {
+    setHeroDismissed(true);
+    localStorage.setItem('scopeperth_hero_dismissed', 'true');
+  }, []);
+
+  const shareData = useCallback(async (text: string) => {
+    const sharePayload = {
+      title: 'ScopePerth',
+      text: text,
+      url: 'https://perth-property-dashboard.vercel.app',
+    };
+    if (navigator.share) {
+      try { await navigator.share(sharePayload); } catch {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(text + ' ' + sharePayload.url);
+        alert('Copied to clipboard!');
+      } catch {}
+    }
+  }, []);
   const [isDark, setIsDark] = useState(false);
   const [favourites, setFavourites] = useState<Set<string | number>>(() => loadFavourites());
   const [filters, setFilters] = useState<FilterState>({
@@ -444,18 +468,82 @@ function App() {
       />
 
       <main className="flex-1">
-        {/* Hero Section */}
+        {/* Dismissable Hero Section - first visit only */}
+        {!heroDismissed && (
+          <section className="relative overflow-hidden bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 text-white py-16 md:py-20">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_70%)]"></div>
+            <button
+              onClick={dismissHero}
+              className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors z-20"
+              aria-label="Dismiss hero"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            <div className="container mx-auto px-4 relative z-10">
+              <div className="max-w-3xl">
+                <Badge className="bg-white/20 text-white border-0 mb-4 text-xs font-medium backdrop-blur-sm">
+                  Free &middot; Live data &middot; Updated twice daily
+                </Badge>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight">
+                  Perth property intelligence
+                  <span className="block text-white/90">built for buyers.</span>
+                </h1>
+                <p className="text-lg md:text-xl text-white/80 mb-8 max-w-2xl">
+                  Track {stats.total} properties across 27 suburbs. Compare suburb trends.
+                  Plan your inspections. Spot the best value &mdash; all in one place.
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <Button
+                    onClick={() => { dismissHero(); setActiveView('grid'); }}
+                    className="bg-white text-orange-600 hover:bg-white/90 font-semibold px-8 py-3 text-base"
+                  >
+                    Start Scoping
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => { dismissHero(); setActiveView('investor'); }}
+                    className="border-white/40 text-white hover:bg-white/10 font-semibold px-8 py-3 text-base"
+                  >
+                    See Investment Data &rarr;
+                  </Button>
+                </div>
+                <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                  <div>
+                    <div className="text-3xl font-bold">{stats.total}</div>
+                    <div className="text-sm text-white/70">Active Listings</div>
+                  </div>
+                  <div>
+                    <div className="text-3xl font-bold">27</div>
+                    <div className="text-sm text-white/70">Suburbs Tracked</div>
+                  </div>
+                  <div>
+                    <div className="text-3xl font-bold">{stats.underOffer}</div>
+                    <div className="text-sm text-white/70">Under Offer</div>
+                  </div>
+                  <div>
+                    <div className="text-3xl font-bold">2x</div>
+                    <div className="text-sm text-white/70">Daily Updates</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Compact Header + Stats - always shown */}
         <section className="relative overflow-hidden bg-gradient-to-b from-muted/50 to-background py-8">
           <div className="hero-glow"></div>
           <div className="container mx-auto px-4 relative z-10">
-            <div className="max-w-2xl mb-6">
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                ScopePerth
-              </h1>
-              <p className="text-muted-foreground">
-                Perth property intelligence - free, live, and built for buyers. Tracking {stats.total} properties across 27 suburbs.
-              </p>
-            </div>
+            {heroDismissed && (
+              <div className="max-w-2xl mb-6">
+                <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                  ScopePerth
+                </h1>
+                <p className="text-muted-foreground">
+                  Perth property intelligence - free, live, and built for buyers. Tracking {stats.total} properties across 27 suburbs.
+                </p>
+              </div>
+            )}
             <HeroStats
               totalProperties={filteredProperties.length}
               withPools={stats.withPools}
@@ -737,6 +825,13 @@ function App() {
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
                     Suburb Investment Scorecard
+                    <button
+                      onClick={() => shareData('Perth suburb investment scorecard - yield, growth and demand signals across 27 suburbs.')}
+                      className="ml-auto text-muted-foreground hover:text-foreground transition-colors"
+                      title="Share scorecard"
+                    >
+                      <Share2 className="h-4 w-4" />
+                    </button>
                   </CardTitle>
                   <p className="text-sm text-muted-foreground">
                     Yield, growth and demand signals across your target suburbs
@@ -759,8 +854,24 @@ function App() {
                       </thead>
                       <tbody>
                         {investmentScorecard.map((row) => (
-                          <tr key={row.suburb} className="border-b hover:bg-muted/50">
-                            <td className="py-3 px-3 font-medium">{row.suburb}</td>
+                          <tr key={row.suburb} className="border-b hover:bg-muted/50 group">
+                            <td className="py-3 px-3 font-medium">
+                              <span className="flex items-center gap-2">
+                                {row.suburb}
+                                <button
+                                  onClick={() => shareData(
+                                    `${row.suburb}: Median $${row.medianAsk ? (row.medianAsk/1000000).toFixed(2) + 'M' : 'N/A'}` +
+                                    `${row.grossYield ? ' | Yield ' + row.grossYield.toFixed(1) + '%' : ''}` +
+                                    `${row.weeklyRent ? ' | Rent $' + row.weeklyRent + '/wk' : ''}` +
+                                    ' via ScopePerth'
+                                  )}
+                                  className="text-muted-foreground hover:text-foreground transition-colors opacity-0 group-hover:opacity-100"
+                                  title={`Share ${row.suburb} data`}
+                                >
+                                  <Share2 className="h-3 w-3" />
+                                </button>
+                              </span>
+                            </td>
                             <td className="text-right py-3 px-3">{row.listings}</td>
                             <td className="text-right py-3 px-3">
                               {row.medianAsk ? `$${(row.medianAsk / 1000000).toFixed(2)}M` : '-'}

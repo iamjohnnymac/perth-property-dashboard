@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { Share2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
@@ -185,6 +186,17 @@ export function PriceTrends() {
     );
   };
 
+  const handleShare = async () => {
+    const suburbText = selectedSuburbs.join(', ') || 'All suburbs';
+    const text = `Perth suburb price trends for ${suburbText} via ScopePerth`;
+    const sharePayload = { title: 'ScopePerth Price Trends', text, url: 'https://perth-property-dashboard.vercel.app' };
+    if (navigator.share) {
+      try { await navigator.share(sharePayload); } catch {}
+    } else {
+      try { await navigator.clipboard.writeText(text + ' ' + sharePayload.url); alert('Copied to clipboard!'); } catch {}
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -194,6 +206,9 @@ export function PriceTrends() {
             <Badge variant="secondary" className="ml-2">
               Sold Data
             </Badge>
+            <button onClick={handleShare} className="ml-auto text-muted-foreground hover:text-foreground transition-colors" title="Share trends">
+              <Share2 className="h-4 w-4" />
+            </button>
           </CardTitle>
           <p className="text-sm text-muted-foreground">
             Quarterly median sold prices.{' '}
