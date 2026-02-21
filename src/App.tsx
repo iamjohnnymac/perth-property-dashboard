@@ -493,18 +493,21 @@ function App() {
                   Plan your inspections. Spot the best value &mdash; all in one place.
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <button
+                  <Button
+                    size="lg"
                     onClick={() => { dismissHero(); setActiveView('grid'); }}
-                    className="inline-flex items-center justify-center h-12 rounded-md bg-white text-orange-600 hover:bg-white/90 font-semibold px-8 text-base transition-colors"
+                    className="bg-white text-orange-600 hover:bg-white/90 font-semibold px-8"
                   >
                     Start Scoping
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
                     onClick={() => { dismissHero(); setActiveView('investor'); }}
-                    className="inline-flex items-center justify-center h-12 rounded-md border-2 border-white text-white hover:bg-white/20 font-semibold px-8 text-base transition-colors"
+                    className="border-2 border-white !text-white hover:bg-white/20 font-semibold px-8"
                   >
                     See Investment Data &rarr;
-                  </button>
+                  </Button>
                 </div>
                 <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
                   <div>
