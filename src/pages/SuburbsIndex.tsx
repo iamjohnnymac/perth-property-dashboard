@@ -141,8 +141,8 @@ export function SuburbsIndex() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {stats.map((s) => (
               <Link key={s.suburb} to={'/suburbs/' + slugify(s.suburb)} className="block">
-                <Card className="hover:shadow-lg transition-shadow hover:border-orange-300 h-full">
-                  <CardContent className="p-6">
+                <Card className="hover:shadow-lg transition-shadow hover:border-orange-300 h-full flex flex-col">
+                  <CardContent className="p-6 flex-1 flex flex-col">
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <h2 className="text-xl font-bold capitalize">{s.suburb.toLowerCase()}</h2>
@@ -174,21 +174,12 @@ export function SuburbsIndex() {
                         </p>
                       </div>
                     </div>
-                    {s.under_offer_pct !== null && s.under_offer_pct > 0 && (
-                      <div className="mt-4 pt-4 border-t text-sm text-muted-foreground flex items-center justify-between">
-                        <span>{s.under_offer_pct.toFixed(0)}% under offer</span>
+                    <div className="mt-auto pt-4 border-t text-sm text-muted-foreground flex items-center justify-between">
+                        <span>{s.under_offer_pct ? s.under_offer_pct.toFixed(0) + '% under offer' : '\u00A0'}</span>
                         <span className="flex items-center text-orange-500 font-medium">
                           View suburb <ArrowRight className="h-4 w-4 ml-1" />
                         </span>
                       </div>
-                    )}
-                    {(!s.under_offer_pct || s.under_offer_pct === 0) && (
-                      <div className="mt-4 pt-4 border-t text-sm flex justify-end">
-                        <span className="flex items-center text-orange-500 font-medium">
-                          View suburb <ArrowRight className="h-4 w-4 ml-1" />
-                        </span>
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
               </Link>

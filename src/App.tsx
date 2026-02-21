@@ -15,7 +15,7 @@ import {
   SheetContent,
   SheetTrigger,
 } from './components/ui/sheet';
-import { SlidersHorizontal, ExternalLink, TrendingUp, Building2, CalendarDays, Bed, Bath, Car, Clock, ArrowDown, Timer, Target, MapPin, Share2, X } from 'lucide-react';
+import { SlidersHorizontal, ExternalLink, TrendingUp, Building2, CalendarDays, Bed, Bath, Car, Clock, ArrowDown, Timer, Target, MapPin, Share2, X, CalendarPlus } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import './App.css';
@@ -116,6 +116,42 @@ function formatInspectionTime(open: Date, close: Date): string {
   const openTime = open.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase().replace(' ', '');
   const closeTime = close.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase().replace(' ', '');
   return `${dayStr}, ${openTime} \u2013 ${closeTime}`;
+}
+
+function generateIcsUrl(property: Property, openTime: Date, closeTime: Date): string {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const formatIcs = (d: Date) =>
+    d.getUTCFullYear().toString() +
+    pad(d.getUTCMonth() + 1) +
+    pad(d.getUTCDate()) + 'T' +
+    pad(d.getUTCHours()) +
+    pad(d.getUTCMinutes()) +
+    pad(d.getUTCSeconds()) + 'Z';
+
+  const summary = 'Inspection: ' + property.address;
+  const location = property.address + ', ' + property.suburb + ' WA';
+  const description = [
+    property.price_display || 'Price on request',
+    property.bedrooms ? property.bedrooms + ' bed' : '',
+    property.bathrooms ? property.bathrooms + ' bath' : '',
+    property.url || ''
+  ].filter(Boolean).join(' | ');
+
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//ScopePerth//Inspection//EN',
+    'BEGIN:VEVENT',
+    'DTSTART:' + formatIcs(openTime),
+    'DTEND:' + formatIcs(closeTime),
+    'SUMMARY:' + summary,
+    'LOCATION:' + location,
+    'DESCRIPTION:' + description,
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+
+  return 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
 }
 
 
@@ -796,11 +832,17 @@ function App() {
                                   )}
                                 </div>
                               </div>
-                              <div className="mt-2">
+                              <div className="mt-2 flex gap-2">
                                 <Button asChild size="sm" variant="outline">
                                   <a href={insp.property.url} target="_blank" rel="noopener noreferrer">
                                     View on Domain
                                     <ExternalLink className="ml-1 h-3 w-3" />
+                                  </a>
+                                </Button>
+                                <Button asChild size="sm" variant="default" className="bg-orange-500 hover:bg-orange-600">
+                                  <a href={generateIcsUrl(insp.property, insp.openTime, insp.closeTime)} download={'inspection-' + insp.property.address.replace(/[^a-zA-Z0-9]/g, '-').substring(0, 30) + '.ics'}>
+                                    <CalendarPlus className="mr-1 h-3 w-3" />
+                                    Add to Calendar
                                   </a>
                                 </Button>
                               </div>
