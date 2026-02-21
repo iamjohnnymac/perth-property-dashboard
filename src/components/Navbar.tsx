@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, Search, Building2, MapPin, TrendingUp, Moon, Sun, CalendarDays, BarChart2 } from 'lucide-react';
+import { Menu, Search, Building2, MapPin, TrendingUp, Moon, Sun, CalendarDays, BarChart2, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -72,6 +72,12 @@ export function Navbar({ activeView, onViewChange, isDark, onToggleDark }: Navba
                     {label}
                   </Button>
                 ))}
+                <a href="/suburbs" className="block">
+                  <Button variant="ghost" className="justify-start gap-2 w-full">
+                    <Globe className="h-4 w-4" />
+                    Suburbs
+                  </Button>
+                </a>
               </nav>
             </SheetContent>
           </Sheet>
@@ -90,6 +96,12 @@ export function Navbar({ activeView, onViewChange, isDark, onToggleDark }: Navba
               {label}
             </Button>
           ))}
+          <a href="/suburbs">
+            <Button variant="ghost" className="gap-2">
+              <Globe className="h-4 w-4" />
+              Suburbs
+            </Button>
+          </a>
           <div className="ml-2 border-l pl-2">
             <Button variant="ghost" size="icon" onClick={onToggleDark}>
               {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
