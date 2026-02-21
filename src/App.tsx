@@ -499,13 +499,12 @@ function App() {
                   >
                     Start Scoping
                   </Button>
-                  <Button
-                    variant="outline"
+                  <button
                     onClick={() => { dismissHero(); setActiveView('investor'); }}
-                    className="border-2 border-white text-white hover:bg-white/20 font-semibold px-8 py-3 text-base backdrop-blur-sm"
+                    className="inline-flex items-center justify-center rounded-md border-2 border-white text-white hover:bg-white/20 font-semibold px-8 py-3 text-base backdrop-blur-sm transition-colors"
                   >
                     See Investment Data &rarr;
-                  </Button>
+                  </button>
                 </div>
                 <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
                   <div>
