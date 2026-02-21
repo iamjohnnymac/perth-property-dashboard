@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, MapPin, TrendingUp, Home, Moon, Sun, Menu, ArrowRight, Building2 } from 'lucide-react';
+import { Search, MapPin, Home, Moon, Sun, Menu, ArrowRight, Building2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
