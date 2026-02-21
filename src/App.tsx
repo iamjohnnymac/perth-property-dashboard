@@ -502,7 +502,7 @@ function App() {
                   <Button
                     variant="outline"
                     onClick={() => { dismissHero(); setActiveView('investor'); }}
-                    className="border-white/40 text-white hover:bg-white/10 font-semibold px-8 py-3 text-base"
+                    className="border-2 border-white text-white hover:bg-white/20 font-semibold px-8 py-3 text-base backdrop-blur-sm"
                   >
                     See Investment Data &rarr;
                   </Button>
