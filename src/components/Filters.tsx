@@ -34,7 +34,6 @@ export function Filters({ filters, onFilterChange, suburbs, propertyTypes, onClo
       minBeds: 3,
       maxPrice: null,
       poolOnly: false,
-      underBudget: false,
       availableOnly: true,
       hideLand: true,
       bestValue: false,
@@ -146,8 +145,7 @@ export function Filters({ filters, onFilterChange, suburbs, propertyTypes, onClo
           </div>
 
           <div className="flex items-center justify-between">
-            <Label htmlFor="budget" className="cursor-pointer">Under $1.74M</Label>
-            <Switch id="budget" checked={filters.underBudget} onCheckedChange={(v) => updateFilter('underBudget', v)} />
+
           </div>
 
           <div className="flex items-center justify-between">
