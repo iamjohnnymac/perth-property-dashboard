@@ -58,9 +58,18 @@ export function SuburbsIndex() {
 
   useEffect(() => {
     async function load() {
-      const { data } = await supabase.rpc('get_suburb_investment_stats');
+      const { data } = await supabase.rpc('get_suburb_page_stats');
       if (data) {
-        const sorted = (data as SuburbStats[]).sort((a, b) => b.listing_count - a.listing_count);
+        const parsed = (data as any[]).map(d => ({
+          suburb: d.suburb,
+          listing_count: Number(d.listing_count) || 0,
+          median_ask: d.median_ask ? Number(d.median_ask) : null,
+          median_sold: d.median_sold ? Number(d.median_sold) : null,
+          weekly_rent: d.weekly_rent ? Number(d.weekly_rent) : null,
+          gross_yield: d.gross_yield ? Number(d.gross_yield) : null,
+          under_offer_pct: d.under_offer_pct ? Number(d.under_offer_pct) : null,
+        }));
+        const sorted = parsed.sort((a, b) => b.listing_count - a.listing_count);
         setStats(sorted);
       }
       setLoading(false);

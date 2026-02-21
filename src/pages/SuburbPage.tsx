@@ -68,13 +68,23 @@ export function SuburbPage() {
           .eq('suburb', suburbName)
           .eq('status', 'active')
           .order('price_numeric', { ascending: true, nullsFirst: false }),
-        supabase.rpc('get_suburb_investment_stats')
+        supabase.rpc('get_suburb_page_stats')
       ]);
 
       if (listingsRes.data) setProperties(listingsRes.data);
       if (statsRes.data) {
         const match = (statsRes.data as any[]).find(s => s.suburb === suburbName);
-        if (match) setInvestStats(match);
+        if (match) {
+          setInvestStats({
+            ...match,
+            listing_count: Number(match.listing_count) || 0,
+            median_ask: match.median_ask ? Number(match.median_ask) : null,
+            median_sold: match.median_sold ? Number(match.median_sold) : null,
+            weekly_rent: match.weekly_rent ? Number(match.weekly_rent) : null,
+            gross_yield: match.gross_yield ? Number(match.gross_yield) : null,
+            under_offer_pct: match.under_offer_pct ? Number(match.under_offer_pct) : null,
+          });
+        }
       }
       setLoading(false);
     }
