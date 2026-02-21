@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, Home, Building2, MapPin, TrendingUp, Moon, Sun, CalendarDays, BarChart2 } from 'lucide-react';
+import { Menu, Search, Building2, MapPin, TrendingUp, Moon, Sun, CalendarDays, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -31,9 +31,12 @@ export function Navbar({ activeView, onViewChange, isDark, onToggleDark }: Navba
     <header className="sticky border-b top-0 z-40 w-full bg-white dark:border-b-slate-700 dark:bg-background">
       <nav className="container mx-auto h-14 px-4 flex items-center justify-between">
         {/* Logo */}
-        <a href="/" className="font-bold text-xl flex items-center gap-2 whitespace-nowrap shrink-0">
-          <Home className="h-6 w-6 text-primary" />
-          <span>Perth Property</span>
+        <a href="/" className="flex items-center gap-2 whitespace-nowrap shrink-0">
+          <Search className="h-6 w-6 text-primary" />
+          <div>
+            <span className="font-bold text-xl">ScopePerth</span>
+            <span className="hidden md:inline text-xs text-muted-foreground ml-2">See every angle of Perth property</span>
+          </div>
         </a>
 
         {/* Mobile menu */}
@@ -50,8 +53,8 @@ export function Navbar({ activeView, onViewChange, isDark, onToggleDark }: Navba
             <SheetContent side="left">
               <SheetHeader>
                 <SheetTitle className="font-bold text-xl flex items-center gap-2">
-                  <Home className="h-5 w-5 text-primary" />
-                  Perth Property
+                  <Search className="h-5 w-5 text-primary" />
+                  ScopePerth
                 </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-2 mt-6">

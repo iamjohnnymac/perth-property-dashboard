@@ -15,7 +15,7 @@ import {
   SheetContent,
   SheetTrigger,
 } from './components/ui/sheet';
-import { SlidersHorizontal, ExternalLink, TrendingUp, Building2, CalendarDays, Bed, Bath, Car, Clock, ArrowDown, Timer, Target } from 'lucide-react';
+import { SlidersHorizontal, ExternalLink, TrendingUp, Building2, CalendarDays, Bed, Bath, Car, Clock, ArrowDown, Timer, Target, MapPin } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import './App.css';
@@ -34,7 +34,6 @@ export interface FilterState {
   minBeds: number;
   maxPrice: number | null;
   poolOnly: boolean;
-  underBudget: boolean;
   availableOnly: boolean;
   hideLand: boolean;
   bestValue: boolean;
@@ -42,7 +41,6 @@ export interface FilterState {
   favouritesOnly: boolean;
 }
 
-const BUDGET = 1740000;
 const FAVOURITES_KEY = 'perth-favourites';
 
 function loadFavourites(): Set<string | number> {
@@ -195,7 +193,6 @@ function App() {
     minBeds: 3,
     maxPrice: null,
     poolOnly: false,
-    underBudget: false,
     availableOnly: true,
     hideLand: true,
     bestValue: false,
@@ -262,7 +259,6 @@ function App() {
       if (filters.minBeds && (p.bedrooms || 0) < filters.minBeds) return false;
       if (filters.maxPrice && p.price_numeric && p.price_numeric > filters.maxPrice) return false;
       if (filters.poolOnly && !p.pool) return false;
-      if (filters.underBudget && (!p.price_numeric || p.price_numeric > BUDGET)) return false;
       if (filters.availableOnly && p.under_offer) return false;
       if (filters.hideLand && (p.property_type === 'Land' || (p.bedrooms || 0) === 0)) return false;
       if (filters.bestValue && (p.motivation_score || 0) < 3) return false;
@@ -287,7 +283,7 @@ function App() {
     return {
       total: available.length,
       withPools: available.filter((p) => p.pool).length,
-      underBudget: available.filter((p) => p.price_numeric && p.price_numeric <= BUDGET).length,
+      medianPrice: (() => { const prices = available.filter(p => p.price_numeric).map(p => p.price_numeric!).sort((a,b) => a - b); return prices.length ? prices[Math.floor(prices.length / 2)] : null; })(),
       underOffer: properties.filter((p) => p.under_offer).length,
     };
   }, [properties]);
@@ -296,12 +292,13 @@ function App() {
     const statsMap: Record<string, { count: number; prices: number[]; pools: number }> = {};
     filteredProperties.forEach((p) => {
       if (!p.suburb) return;
-      if (!statsMap[p.suburb]) {
-        statsMap[p.suburb] = { count: 0, prices: [], pools: 0 };
+      const subKey = p.suburb.toUpperCase();
+      if (!statsMap[subKey]) {
+        statsMap[subKey] = { count: 0, prices: [], pools: 0 };
       }
-      statsMap[p.suburb].count++;
-      if (p.price_numeric) statsMap[p.suburb].prices.push(p.price_numeric);
-      if (p.pool) statsMap[p.suburb].pools++;
+      statsMap[subKey].count++;
+      if (p.price_numeric) statsMap[subKey].prices.push(p.price_numeric);
+      if (p.pool) statsMap[subKey].pools++;
     });
 
     return Object.entries(statsMap)
@@ -453,18 +450,17 @@ function App() {
           <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-2xl mb-6">
               <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                Perth Property Tracker
+                ScopePerth
               </h1>
               <p className="text-muted-foreground">
-                Monitoring {stats.total} properties across 27 suburbs. Updated twice daily.
+                Perth property intelligence - free, live, and built for buyers. Tracking {stats.total} properties across 27 suburbs.
               </p>
             </div>
             <HeroStats
               totalProperties={filteredProperties.length}
               withPools={stats.withPools}
-              underBudget={stats.underBudget}
+              medianPrice={stats.medianPrice}
               underOffer={stats.underOffer}
-              budget={BUDGET}
             />
           </div>
         </section>
@@ -609,7 +605,7 @@ function App() {
               </Card>
               {/* Property count badge */}
               <div className="absolute top-3 right-3 z-[1000] bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-md border border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-1.5">
-                <span>\ud83d\udccd</span>
+                <MapPin className="h-4 w-4 inline" />
                 <span>{filteredProperties.filter(p => p.latitude && p.longitude && Math.abs(p.latitude! % 1) > 0.001).length} properties</span>
               </div>
               {/* Map Legend */}

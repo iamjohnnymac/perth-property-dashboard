@@ -1,4 +1,4 @@
-import { Home, ExternalLink } from 'lucide-react';
+import { Search, ExternalLink } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -8,11 +8,11 @@ export function Footer() {
           {/* Logo & Description */}
           <div className="col-span-2 md:col-span-1">
             <a href="/" className="font-bold text-xl flex items-center gap-2 mb-4">
-              <Home className="h-6 w-6 text-primary" />
-              <span>Perth Property</span>
+              <Search className="h-6 w-6 text-primary" />
+              <span>ScopePerth</span>
             </a>
             <p className="text-sm text-muted-foreground">
-              Track properties across 27 Perth suburbs. Updated twice daily.
+              See every angle of Perth property. Live data across 27 suburbs, updated twice daily.
             </p>
           </div>
 
@@ -69,7 +69,7 @@ export function Footer() {
         </div>
 
         <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>Data from Domain.com.au • Updated twice daily</p>
+          <p>ScopePerth - Data from Domain.com.au | Updated twice daily</p>
         </div>
       </div>
     </footer>
