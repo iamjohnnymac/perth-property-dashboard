@@ -134,23 +134,23 @@ export function SuburbsIndex() {
       </section>
 
       {/* Suburb Grid */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-12">
         {loading ? (
           <div className="text-center py-20 text-muted-foreground">Loading suburb data...</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {stats.map((s) => (
               <Link key={s.suburb} to={'/suburbs/' + slugify(s.suburb)} className="block">
                 <Card className="hover:shadow-lg transition-shadow hover:border-orange-300 h-full flex flex-col">
-                  <CardContent className="p-5 flex-1 flex flex-col">
-                    <div className="flex items-start justify-between mb-3">
+                  <CardContent className="p-6 flex-1 flex flex-col">
+                    <div className="flex items-start justify-between mb-4">
                       <div>
                         <h2 className="text-xl font-bold capitalize">{s.suburb.toLowerCase()}</h2>
                         <p className="text-sm text-muted-foreground">{s.listing_count} active listing{s.listing_count !== 1 ? 's' : ''}</p>
                       </div>
                       <MapPin className="h-5 w-5 text-orange-500 shrink-0" />
                     </div>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-muted-foreground">Median Ask</p>
                         <p className="font-semibold text-lg">{formatPrice(s.median_ask)}</p>
