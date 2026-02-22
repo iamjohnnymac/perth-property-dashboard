@@ -25,7 +25,7 @@ export function PropertyCard({ property, isFavourite = false, onToggleFavourite,
     : null;
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow group">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow group flex flex-col">
       {/* Image */}
       <div className="relative aspect-[4/3] bg-muted overflow-hidden">
         {property.photo_url ? (
@@ -111,7 +111,7 @@ export function PropertyCard({ property, isFavourite = false, onToggleFavourite,
       </div>
 
       {/* Content */}
-      <CardContent className="p-4">
+      <CardContent className="p-4 flex flex-col flex-1">
         {/* Price */}
         <div className="flex items-start justify-between mb-2">
           <div>
@@ -228,7 +228,7 @@ export function PropertyCard({ property, isFavourite = false, onToggleFavourite,
         )}
 
         {/* CTA */}
-        <Button asChild className="w-full" variant="default">
+        <Button asChild className="w-full mt-auto" variant="default">
           <a href={property.url} target="_blank" rel="noopener noreferrer">
             View on Domain
             <ExternalLink className="ml-2 h-4 w-4" />
