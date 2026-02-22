@@ -4,7 +4,6 @@ import { supabase, type Property } from './lib/supabase';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { PropertyCard } from './components/PropertyCard';
-import { HeroStats } from './components/HeroStats';
 import { Filters } from './components/Filters';
 import { PriceTrends } from './components/PriceTrends';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
@@ -359,15 +358,7 @@ function App() {
     return Array.from(t).sort();
   }, [properties]);
 
-  const stats = useMemo(() => {
-    const available = properties.filter((p) => !p.under_offer && p.property_type !== 'Land' && (p.bedrooms || 0) > 0);
-    return {
-      total: available.length,
-      withPools: available.filter((p) => p.pool).length,
-      medianPrice: (() => { const prices = available.filter(p => p.price_numeric).map(p => p.price_numeric!).sort((a,b) => a - b); return prices.length ? prices[Math.floor(prices.length / 2)] : null; })(),
-      underOffer: properties.filter((p) => p.under_offer).length,
-    };
-  }, [properties]);
+
 
   const suburbStats = useMemo(() => {
     const statsMap: Record<string, { count: number; prices: number[]; pools: number }> = {};
@@ -546,27 +537,6 @@ function App() {
       />
 
       <main className="flex-1">
-        {/* Compact Header + Stats - always shown */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-muted/50 to-background py-8">
-          <div className="hero-glow"></div>
-          <div className="container mx-auto px-4 relative z-10">
-            <div className="max-w-2xl mb-6">
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                  ScopePerth
-                </h1>
-                <p className="text-muted-foreground">
-                  Perth property intelligence - free, live, and built for buyers. Tracking {stats.total} properties across 27 suburbs.
-                </p>
-              </div>
-            <HeroStats
-              totalProperties={filteredProperties.length}
-              withPools={stats.withPools}
-              medianPrice={stats.medianPrice}
-              underOffer={stats.underOffer}
-            />
-          </div>
-        </section>
-
         {/* Main Content */}
         <section className="container mx-auto px-4 py-8">
           {activeView === 'grid' && (
@@ -653,7 +623,15 @@ function App() {
                         (p.agency_name || '').toLowerCase().includes(s)
                       ) : filteredProperties;
                       return searched.length;
-                    })())} of {properties.length} properties
+                    })())} of {(() => {
+                      const s2 = searchTerm.toLowerCase();
+                      return s2 ? filteredProperties.filter(p =>
+                        (p.address || '').toLowerCase().includes(s2) ||
+                        (p.suburb || '').toLowerCase().includes(s2) ||
+                        (p.agent_name || '').toLowerCase().includes(s2) ||
+                        (p.agency_name || '').toLowerCase().includes(s2)
+                      ).length : filteredProperties.length;
+                    })()} properties
                   </p>
                 </div>
 
