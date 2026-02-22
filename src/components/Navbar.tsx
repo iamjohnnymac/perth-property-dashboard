@@ -35,7 +35,7 @@ export function Navbar({ activeView, onViewChange, isDark, onToggleDark }: Navba
           <Search className="h-6 w-6 text-primary" />
           <div>
             <span className="font-bold text-xl">ScopePerth</span>
-            <span className="hidden md:inline text-xs text-muted-foreground ml-2">See every angle of Perth property</span>
+            <span className="hidden xl:inline text-xs text-muted-foreground ml-2">See every angle of Perth property</span>
           </div>
         </a>
 
@@ -90,31 +90,32 @@ export function Navbar({ activeView, onViewChange, isDark, onToggleDark }: Navba
         </div>
 
         {/* Desktop nav */}
-        <div className="hidden lg:flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-1">
           {navItems.map(({ id, label, icon: Icon }) => (
             <Button
               key={id}
               variant={activeView === id ? 'default' : 'ghost'}
               onClick={() => onViewChange(id)}
-              className="gap-2"
+              size="sm"
+              className="gap-1.5"
             >
               <Icon className="h-4 w-4" />
               {label}
             </Button>
           ))}
           <a href="/suburbs">
-            <Button variant="ghost" className="gap-2">
+            <Button variant="ghost" size="sm" className="gap-1.5">
               <Globe className="h-4 w-4" />
               Suburbs
             </Button>
           </a>
           <a href="/calculators">
-            <Button variant="ghost" className="gap-2">
+            <Button variant="ghost" size="sm" className="gap-1.5">
               <Calculator className="h-4 w-4" />
               Calculators
             </Button>
           </a>
-          <div className="ml-2 border-l pl-2">
+          <div className="ml-1 border-l pl-1">
             <Button variant="ghost" size="icon" onClick={onToggleDark}>
               {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
