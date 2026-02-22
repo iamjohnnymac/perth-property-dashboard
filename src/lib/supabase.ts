@@ -33,6 +33,9 @@ export interface Property {
   agency_name: string | null
   inspection_open_time: string | null
   inspection_close_time: string | null
+  estimated_price: number | null
+  estimated_price_confidence: string | null
+  estimated_price_comparables: number | null
 }
 
 export interface Comparable {

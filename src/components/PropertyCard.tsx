@@ -1,4 +1,4 @@
-import { ExternalLink, Bed, Bath, Car, Maximize, Waves, TrendingDown, MapPin, Clock, Heart, StickyNote } from 'lucide-react';
+import { ExternalLink, Bed, Bath, Car, Maximize, Waves, TrendingDown, MapPin, Clock, Heart, StickyNote, Calculator } from 'lucide-react';
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -118,6 +118,21 @@ export function PropertyCard({ property, isFavourite = false, onToggleFavourite,
             <p className="font-bold text-lg text-primary">
               {property.price_display || 'Price on request'}
             </p>
+            {(!property.price_numeric || property.price_numeric === 0) && property.estimated_price && (
+              <p className="text-sm flex items-center gap-1.5 mt-0.5">
+                <span className={`inline-block h-2 w-2 rounded-full ${
+                  property.estimated_price_confidence === 'high' ? 'bg-green-500' :
+                  property.estimated_price_confidence === 'medium' ? 'bg-amber-500' : 'bg-red-500'
+                }`} />
+                <span className="text-muted-foreground">
+                  <Calculator className="h-3 w-3 inline mr-0.5" />
+                  ~${property.estimated_price >= 1000000
+                    ? (property.estimated_price / 1000000).toFixed(1) + 'M'
+                    : Math.round(property.estimated_price / 1000) + 'K'
+                  } est.
+                </span>
+              </p>
+            )}
             {priceDropPercent && property.original_price && (
               <p className="text-xs text-muted-foreground line-through">
                 ${property.original_price.toLocaleString()}

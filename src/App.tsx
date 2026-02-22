@@ -650,8 +650,8 @@ function App() {
                       switch (sortBy) {
                         case 'newest': return new Date(b.first_seen_date || 0).getTime() - new Date(a.first_seen_date || 0).getTime();
                         case 'oldest': return new Date(a.first_seen_date || 0).getTime() - new Date(b.first_seen_date || 0).getTime();
-                        case 'price-asc': return (a.price_numeric || 999999999) - (b.price_numeric || 999999999);
-                        case 'price-desc': return (b.price_numeric || 0) - (a.price_numeric || 0);
+                        case 'price-asc': return (a.price_numeric || a.estimated_price || 999999999) - (b.price_numeric || b.estimated_price || 999999999);
+                        case 'price-desc': return (b.price_numeric || b.estimated_price || 0) - (a.price_numeric || a.estimated_price || 0);
                         case 'beds-desc': return (b.bedrooms || 0) - (a.bedrooms || 0);
                         case 'land-desc': return (parseInt(String(b.land_size || '0')) || 0) - (parseInt(String(a.land_size || '0')) || 0);
                         default: return 0;
