@@ -3,8 +3,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { supabase, type Property } from './lib/supabase';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
-import { HeroStats } from './components/HeroStats';
 import { PropertyCard } from './components/PropertyCard';
+import { HeroStats } from './components/HeroStats';
 import { Filters } from './components/Filters';
 import { PriceTrends } from './components/PriceTrends';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
@@ -15,7 +15,7 @@ import {
   SheetContent,
   SheetTrigger,
 } from './components/ui/sheet';
-import { SlidersHorizontal, ExternalLink, TrendingUp, Building2, CalendarDays, Bed, Bath, Car, Clock, ArrowDown, Timer, Target, MapPin, Share2, X, CalendarPlus, Search, ArrowUpDown, StickyNote, ChevronDown, Loader2 } from 'lucide-react';
+import { SlidersHorizontal, ExternalLink, TrendingUp, Building2, CalendarDays, Bed, Bath, Car, Clock, ArrowDown, Timer, Target, MapPin, Share2, X, CalendarPlus, Search, ArrowUpDown, ChevronDown } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
@@ -236,14 +236,7 @@ function App() {
   const [soldStats, setSoldStats] = useState<SuburbSoldStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState<'grid' | 'map' | 'investor' | 'inspections' | 'trends'>('grid');
-  const [heroDismissed, setHeroDismissed] = useState(() => {
-    return localStorage.getItem('scopeperth_hero_dismissed') === 'true';
-  });
 
-  const dismissHero = useCallback(() => {
-    setHeroDismissed(true);
-    localStorage.setItem('scopeperth_hero_dismissed', 'true');
-  }, []);
 
   const shareData = useCallback(async (text: string) => {
     const sharePayload = {
@@ -330,6 +323,15 @@ function App() {
       return next;
     });
   }, []);
+
+  const handleNoteChange = (id: string | number, note: string) => {
+    setNotes(prev => {
+      const updated = { ...prev, [String(id)]: note };
+      if (!note) delete updated[String(id)];
+      saveNotes(updated);
+      return updated;
+    });
+  };
 
   const filteredProperties = useMemo(() => {
     return properties.filter((p) => {
@@ -544,76 +546,11 @@ function App() {
       />
 
       <main className="flex-1">
-        {/* Dismissable Hero Section - first visit only */}
-        {!heroDismissed && (
-          <section className="relative overflow-hidden bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 text-white py-16 md:py-20">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_70%)]"></div>
-            <button
-              onClick={dismissHero}
-              className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors z-20"
-              aria-label="Dismiss hero"
-            >
-              <X className="h-6 w-6" />
-            </button>
-            <div className="container mx-auto px-4 relative z-10">
-              <div className="max-w-3xl">
-                <Badge className="bg-white/20 text-white border-0 mb-4 text-xs font-medium backdrop-blur-sm">
-                  Free &middot; Live data &middot; Updated twice daily
-                </Badge>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight">
-                  Perth property intelligence
-                  <span className="block text-white/90">built for buyers.</span>
-                </h1>
-                <p className="text-lg md:text-xl text-white/80 mb-8 max-w-2xl">
-                  Track {stats.total} properties across 27 suburbs. Compare suburb trends.
-                  Plan your inspections. Spot the best value &mdash; all in one place.
-                </p>
-                <div className="flex flex-wrap gap-4">
-                  <Button
-                    size="lg"
-                    onClick={() => { dismissHero(); setActiveView('grid'); }}
-                    className="bg-white text-orange-600 hover:bg-white/90 font-semibold px-8"
-                  >
-                    Start Scoping
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={() => { dismissHero(); setActiveView('investor'); }}
-                    className="border-2 border-white !text-white hover:bg-white/20 font-semibold px-8"
-                  >
-                    See Investment Data &rarr;
-                  </Button>
-                </div>
-                <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                  <div>
-                    <div className="text-3xl font-bold">{stats.total}</div>
-                    <div className="text-sm text-white/70">Active Listings</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold">27</div>
-                    <div className="text-sm text-white/70">Suburbs Tracked</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold">{stats.underOffer}</div>
-                    <div className="text-sm text-white/70">Under Offer</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold">2x</div>
-                    <div className="text-sm text-white/70">Daily Updates</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
         {/* Compact Header + Stats - always shown */}
         <section className="relative overflow-hidden bg-gradient-to-b from-muted/50 to-background py-8">
           <div className="hero-glow"></div>
           <div className="container mx-auto px-4 relative z-10">
-            {heroDismissed && (
-              <div className="max-w-2xl mb-6">
+            <div className="max-w-2xl mb-6">
                 <h1 className="text-3xl md:text-4xl font-bold mb-2">
                   ScopePerth
                 </h1>
@@ -621,7 +558,6 @@ function App() {
                   Perth property intelligence - free, live, and built for buyers. Tracking {stats.total} properties across 27 suburbs.
                 </p>
               </div>
-            )}
             <HeroStats
               totalProperties={filteredProperties.length}
               withPools={stats.withPools}
