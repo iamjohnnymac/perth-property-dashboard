@@ -713,7 +713,7 @@ function App() {
 
           {activeView === 'map' && (
             <div className="relative">
-              <Card className="h-[650px] overflow-hidden">
+              <Card className="h-[calc(100vh-10rem)] lg:h-[650px] overflow-hidden">
                 <CardContent className="p-0 h-full">
                   <MapContainer
                     center={[-31.89, 115.80]}
@@ -800,7 +800,7 @@ function App() {
                 <span>{filteredProperties.filter(p => p.latitude && p.longitude && Math.abs(p.latitude! % 1) > 0.001).length} properties</span>
               </div>
               {/* Map Legend */}
-              <div className="absolute bottom-4 right-4 z-[1000] bg-white dark:bg-gray-900 rounded-lg shadow-lg border p-3 text-xs space-y-1.5">
+              <div className="absolute bottom-16 right-3 lg:bottom-4 lg:right-4 z-[1000] bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-lg border p-2 lg:p-3 text-[10px] lg:text-xs space-y-1">
                 <p className="font-semibold text-gray-700 dark:text-gray-300 mb-1">Property Type</p>
                 {[
                   { label: 'House', color: '#f97316' },

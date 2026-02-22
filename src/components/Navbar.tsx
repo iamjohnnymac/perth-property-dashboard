@@ -122,6 +122,25 @@ export function Navbar({ activeView, onViewChange, isDark, onToggleDark }: Navba
           </div>
         </div>
       </nav>
+      {/* Mobile tab bar */}
+      <div className="flex lg:hidden border-t overflow-x-auto bg-white dark:bg-background">
+        <div className="flex w-full">
+          {navItems.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => onViewChange(id)}
+              className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${
+                activeView === id
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-muted-foreground'
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
     </header>
   );
 }
