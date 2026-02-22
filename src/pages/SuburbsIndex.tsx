@@ -150,7 +150,7 @@ export function SuburbsIndex() {
                       </div>
                       <MapPin className="h-5 w-5 text-orange-500 shrink-0" />
                     </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-2 gap-4 text-sm pb-4">
                       <div>
                         <p className="text-muted-foreground">Median Ask</p>
                         <p className="font-semibold text-lg">{formatPrice(s.median_ask)}</p>
