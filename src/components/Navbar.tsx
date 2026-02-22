@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, Search, Building2, MapPin, TrendingUp, Moon, Sun, CalendarDays, BarChart2, Globe } from 'lucide-react';
+import { Menu, Search, Building2, MapPin, TrendingUp, Moon, Sun, CalendarDays, BarChart2, Globe, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -78,6 +78,12 @@ export function Navbar({ activeView, onViewChange, isDark, onToggleDark }: Navba
                     Suburbs
                   </Button>
                 </a>
+                <a href="/calculators" className="block">
+                  <Button variant="ghost" className="justify-start gap-2 w-full">
+                    <Calculator className="h-4 w-4" />
+                    Calculators
+                  </Button>
+                </a>
               </nav>
             </SheetContent>
           </Sheet>
@@ -100,6 +106,12 @@ export function Navbar({ activeView, onViewChange, isDark, onToggleDark }: Navba
             <Button variant="ghost" className="gap-2">
               <Globe className="h-4 w-4" />
               Suburbs
+            </Button>
+          </a>
+          <a href="/calculators">
+            <Button variant="ghost" className="gap-2">
+              <Calculator className="h-4 w-4" />
+              Calculators
             </Button>
           </a>
           <div className="ml-2 border-l pl-2">

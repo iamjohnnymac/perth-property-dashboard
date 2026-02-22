@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.tsx'
 import { SuburbsIndex } from './pages/SuburbsIndex.tsx'
 import { SuburbPage } from './pages/SuburbPage.tsx'
+import { Calculators } from './pages/Calculators.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -13,6 +14,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/" element={<App />} />
         <Route path="/suburbs" element={<SuburbsIndex />} />
         <Route path="/suburbs/:slug" element={<SuburbPage />} />
+        <Route path="/calculators" element={<Calculators />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
