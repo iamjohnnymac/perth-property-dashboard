@@ -15,8 +15,9 @@ import {
   SheetContent,
   SheetTrigger,
 } from './components/ui/sheet';
-import { SlidersHorizontal, ExternalLink, TrendingUp, Building2, CalendarDays, Bed, Bath, Car, Clock, ArrowDown, Timer, Target, MapPin, Share2, X, CalendarPlus } from 'lucide-react';
+import { SlidersHorizontal, ExternalLink, TrendingUp, Building2, CalendarDays, Bed, Bath, Car, Clock, ArrowDown, Timer, Target, MapPin, Share2, X, CalendarPlus, Search, ArrowUpDown, StickyNote, ChevronDown, Loader2 } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import './App.css';
 
@@ -42,6 +43,20 @@ export interface FilterState {
 }
 
 const FAVOURITES_KEY = 'perth-favourites';
+
+
+const NOTES_KEY = 'perth-notes';
+
+function loadNotes(): Record<string, string> {
+  try {
+    const stored = localStorage.getItem(NOTES_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch { return {}; }
+}
+
+function saveNotes(notes: Record<string, string>) {
+  localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+}
 
 function loadFavourites(): Set<string | number> {
   try {
@@ -247,6 +262,10 @@ function App() {
   }, []);
   const [isDark, setIsDark] = useState(false);
   const [favourites, setFavourites] = useState<Set<string | number>>(() => loadFavourites());
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
+  const [displayCount, setDisplayCount] = useState(24);
+  const [notes, setNotes] = useState<Record<string, string>>(() => loadNotes());
   const [filters, setFilters] = useState<FilterState>({
     suburb: '',
     propertyType: '',
@@ -485,10 +504,31 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading properties...</p>
+      <div className="min-h-screen bg-background">
+        <Navbar activeView="grid" onViewChange={() => {}} isDark={false} onToggleDark={() => {}} />
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            {[1,2,3].map(i => (
+              <div key={i} className="h-24 rounded-xl bg-muted animate-pulse" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {[1,2,3,4,5,6].map(i => (
+              <div key={i} className="rounded-xl overflow-hidden border">
+                <div className="aspect-[4/3] bg-muted animate-pulse" />
+                <div className="p-4 space-y-3">
+                  <div className="h-5 w-2/3 bg-muted animate-pulse rounded" />
+                  <div className="h-4 w-1/2 bg-muted animate-pulse rounded" />
+                  <div className="flex gap-3">
+                    <div className="h-4 w-12 bg-muted animate-pulse rounded" />
+                    <div className="h-4 w-12 bg-muted animate-pulse rounded" />
+                    <div className="h-4 w-12 bg-muted animate-pulse rounded" />
+                  </div>
+                  <div className="h-10 bg-muted animate-pulse rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -632,22 +672,117 @@ function App() {
                   </Sheet>
                 </div>
 
+                {/* Search + Sort Bar */}
+                <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <input
+                      type="text"
+                      placeholder="Search by address, suburb, or agent..."
+                      value={searchTerm}
+                      onChange={(e) => { setSearchTerm(e.target.value); setDisplayCount(24); }}
+                      className="w-full pl-10 pr-4 py-2 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                    {searchTerm && (
+                      <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    >
+                      <option value="newest">Newest Listed</option>
+                      <option value="oldest">Longest Listed</option>
+                      <option value="price-asc">Price: Low to High</option>
+                      <option value="price-desc">Price: High to Low</option>
+                      <option value="beds-desc">Bedrooms: Most First</option>
+                      <option value="land-desc">Land Size: Largest</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div className="mb-4">
                   <p className="text-sm text-muted-foreground">
-                    Showing {filteredProperties.length} of {properties.length} properties
+                    Showing {Math.min(displayCount, (() => {
+                      const s = searchTerm.toLowerCase();
+                      const searched = s ? filteredProperties.filter(p =>
+                        (p.address || '').toLowerCase().includes(s) ||
+                        (p.suburb || '').toLowerCase().includes(s) ||
+                        (p.agent_name || '').toLowerCase().includes(s) ||
+                        (p.agency_name || '').toLowerCase().includes(s)
+                      ) : filteredProperties;
+                      return searched.length;
+                    })())} of {properties.length} properties
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {filteredProperties.map((property) => (
-                    <PropertyCard
-                      key={property.id}
-                      property={property}
-                      isFavourite={favourites.has(property.id)}
-                      onToggleFavourite={handleToggleFavourite}
-                    />
-                  ))}
+                  {(() => {
+                    const s = searchTerm.toLowerCase();
+                    let results = s ? filteredProperties.filter(p =>
+                      (p.address || '').toLowerCase().includes(s) ||
+                      (p.suburb || '').toLowerCase().includes(s) ||
+                      (p.agent_name || '').toLowerCase().includes(s) ||
+                      (p.agency_name || '').toLowerCase().includes(s)
+                    ) : [...filteredProperties];
+
+                    // Sort
+                    results.sort((a, b) => {
+                      switch (sortBy) {
+                        case 'newest': return new Date(b.first_seen_date || 0).getTime() - new Date(a.first_seen_date || 0).getTime();
+                        case 'oldest': return new Date(a.first_seen_date || 0).getTime() - new Date(b.first_seen_date || 0).getTime();
+                        case 'price-asc': return (a.price_numeric || 999999999) - (b.price_numeric || 999999999);
+                        case 'price-desc': return (b.price_numeric || 0) - (a.price_numeric || 0);
+                        case 'beds-desc': return (b.bedrooms || 0) - (a.bedrooms || 0);
+                        case 'land-desc': return (parseInt(String(b.land_size || '0')) || 0) - (parseInt(String(a.land_size || '0')) || 0);
+                        default: return 0;
+                      }
+                    });
+
+                    return results.slice(0, displayCount).map((property) => (
+                      <PropertyCard
+                        key={property.id}
+                        property={property}
+                        isFavourite={favourites.has(property.id)}
+                        onToggleFavourite={handleToggleFavourite}
+                        note={notes[String(property.id)] || ''}
+                        onNoteChange={handleNoteChange}
+                      />
+                    ));
+                  })()}
                 </div>
+
+                {/* Load More Button */}
+                {(() => {
+                  const s = searchTerm.toLowerCase();
+                  const total = s ? filteredProperties.filter(p =>
+                    (p.address || '').toLowerCase().includes(s) ||
+                    (p.suburb || '').toLowerCase().includes(s) ||
+                    (p.agent_name || '').toLowerCase().includes(s) ||
+                    (p.agency_name || '').toLowerCase().includes(s)
+                  ).length : filteredProperties.length;
+                  if (displayCount < total) {
+                    return (
+                      <div className="text-center mt-8">
+                        <Button
+                          variant="outline"
+                          size="lg"
+                          onClick={() => setDisplayCount(prev => prev + 24)}
+                          className="gap-2"
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                          Load More ({total - displayCount} remaining)
+                        </Button>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
 
                 {filteredProperties.length === 0 && (
                   <Card className="text-center py-12">
@@ -676,6 +811,21 @@ function App() {
                       url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
                     />
                     <LocateControl />
+                    <MarkerClusterGroup
+                      chunkedLoading
+                      maxClusterRadius={50}
+                      spiderfyOnMaxZoom
+                      showCoverageOnHover={false}
+                      iconCreateFunction={(cluster: any) => {
+                        const count = cluster.getChildCount();
+                        const size = count < 10 ? 36 : count < 50 ? 44 : 52;
+                        return L.divIcon({
+                          html: '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:#f97316;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:3px solid white;box-shadow:0 3px 12px rgba(0,0,0,0.3);">' + count + '</div>',
+                          className: '',
+                          iconSize: L.point(size, size),
+                        });
+                      }}
+                    >
                     {filteredProperties
                       .filter((p) => p.latitude && p.longitude && Math.abs(p.latitude! % 1) > 0.001)
                       .map((property) => {
@@ -705,7 +855,7 @@ function App() {
                                   <img
                                     src={property.photo_url}
                                     alt={property.address}
-                                    style={{width:'100%',height:'110px',objectFit:'cover',borderRadius:'6px',marginBottom:'8px',display:'block'}}
+                                    loading="lazy" style={{width:'100%',height:'110px',objectFit:'cover',borderRadius:'6px',marginBottom:'8px',display:'block'}}
                                   />
                                 )}
                                 <p style={{fontWeight:'700',fontSize:'13px',margin:'0 0 3px',lineHeight:'1.3',color:'#111'}}>{property.address}</p>
@@ -726,6 +876,7 @@ function App() {
                           </Marker>
                         );
                       })}
+                    </MarkerClusterGroup>
                   </MapContainer>
                 </CardContent>
               </Card>

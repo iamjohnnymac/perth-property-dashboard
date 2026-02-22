@@ -1,7 +1,7 @@
 {
   "name": "perth-property-dashboard",
   "private": true,
-  "version": "1.0.0",
+  "version": "10.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -28,7 +28,8 @@
     "recharts": "^2.12.0",
     "tailwind-merge": "^2.2.0",
     "tailwindcss-animate": "^1.0.7",
-    "react-router-dom": "^6.21.0"
+    "react-router-dom": "^6.21.0",
+    "react-leaflet-cluster": "^2.1.0"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.8",
