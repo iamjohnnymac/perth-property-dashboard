@@ -1056,7 +1056,7 @@ export function Calculators() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar activeView="grid" onViewChange={() => {}} isDark={isDark} onToggleDark={toggleDark} />
+      <Navbar isDark={isDark} onToggleDark={toggleDark} activePage="calculators" />
 
       <main className="container mx-auto px-4 py-8">
         {/* Header */}

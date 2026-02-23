@@ -1,18 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, MapPin, Home, Moon, Sun, Menu, ArrowRight, Building2 } from 'lucide-react';
+import { MapPin, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Footer } from '../components/Footer';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { Navbar } from '../components/Navbar';
+
 
 interface SuburbStats {
   suburb: string;
@@ -39,7 +33,6 @@ export function SuburbsIndex() {
   const [stats, setStats] = useState<SuburbStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     document.title = 'Perth Suburbs - Property Data & Investment Stats | ScopePerth';
@@ -81,42 +74,7 @@ export function SuburbsIndex() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Navbar */}
-      <header className="sticky border-b top-0 z-40 w-full bg-white dark:border-b-slate-700 dark:bg-background">
-        <nav className="container mx-auto h-14 px-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 whitespace-nowrap shrink-0">
-            <Search className="h-6 w-6 text-primary" />
-            <div>
-              <span className="font-bold text-xl">ScopePerth</span>
-              <span className="hidden md:inline text-xs text-muted-foreground ml-2">See every angle of Perth property</span>
-            </div>
-          </Link>
-          <div className="flex lg:hidden items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => setIsDark(!isDark)}>
-              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </Button>
-            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-              <SheetTrigger asChild><Button variant="ghost" size="icon"><Menu className="h-5 w-5" /></Button></SheetTrigger>
-              <SheetContent side="left">
-                <SheetHeader><SheetTitle className="font-bold text-xl flex items-center gap-2"><Search className="h-5 w-5 text-primary" />ScopePerth</SheetTitle></SheetHeader>
-                <nav className="flex flex-col gap-2 mt-6">
-                  <Link to="/"><Button variant="ghost" className="justify-start gap-2 w-full"><Home className="h-4 w-4" />Dashboard</Button></Link>
-                  <Button variant="default" className="justify-start gap-2"><Building2 className="h-4 w-4" />Suburbs</Button>
-                </nav>
-              </SheetContent>
-            </Sheet>
-          </div>
-          <div className="hidden lg:flex items-center gap-2">
-            <Link to="/"><Button variant="ghost" className="gap-2"><Home className="h-4 w-4" />Dashboard</Button></Link>
-            <Button variant="default" className="gap-2"><Building2 className="h-4 w-4" />Suburbs</Button>
-            <div className="ml-2 border-l pl-2">
-              <Button variant="ghost" size="icon" onClick={() => setIsDark(!isDark)}>
-                {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-              </Button>
-            </div>
-          </div>
-        </nav>
-      </header>
+      <Navbar isDark={isDark} onToggleDark={() => setIsDark(!isDark)} activePage="suburbs" />
 
       {/* Hero */}
       <section className="bg-gradient-to-r from-orange-500 to-orange-600 text-white py-16">

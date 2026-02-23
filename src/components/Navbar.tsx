@@ -9,11 +9,14 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 
+type ViewType = 'grid' | 'map' | 'investor' | 'inspections' | 'trends';
+
 interface NavbarProps {
-  activeView: 'grid' | 'map' | 'investor' | 'inspections' | 'trends';
-  onViewChange: (view: 'grid' | 'map' | 'investor' | 'inspections' | 'trends') => void;
+  activeView?: ViewType;
+  onViewChange?: (view: ViewType) => void;
   isDark: boolean;
   onToggleDark: () => void;
+  activePage?: 'suburbs' | 'calculators';
 }
 
 const navItems = [
@@ -24,8 +27,9 @@ const navItems = [
   { id: 'investor' as const, label: 'Investor', icon: TrendingUp },
 ];
 
-export function Navbar({ activeView, onViewChange, isDark, onToggleDark }: NavbarProps) {
+export function Navbar({ activeView, onViewChange, isDark, onToggleDark, activePage }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const isEmbedded = !!onViewChange;
 
   return (
     <header className="sticky border-b top-0 z-40 w-full bg-white dark:border-b-slate-700 dark:bg-background">
@@ -59,27 +63,36 @@ export function Navbar({ activeView, onViewChange, isDark, onToggleDark }: Navba
               </SheetHeader>
               <nav className="flex flex-col gap-2 mt-6">
                 {navItems.map(({ id, label, icon: Icon }) => (
-                  <Button
-                    key={id}
-                    variant={activeView === id ? 'default' : 'ghost'}
-                    className="justify-start gap-2"
-                    onClick={() => {
-                      onViewChange(id);
-                      setIsOpen(false);
-                    }}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {label}
-                  </Button>
+                  isEmbedded ? (
+                    <Button
+                      key={id}
+                      variant={activeView === id ? 'default' : 'ghost'}
+                      className="justify-start gap-2"
+                      onClick={() => {
+                        onViewChange(id);
+                        setIsOpen(false);
+                      }}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {label}
+                    </Button>
+                  ) : (
+                    <a key={id} href="/" className="block">
+                      <Button variant="ghost" className="justify-start gap-2 w-full" onClick={() => setIsOpen(false)}>
+                        <Icon className="h-4 w-4" />
+                        {label}
+                      </Button>
+                    </a>
+                  )
                 ))}
                 <a href="/suburbs" className="block">
-                  <Button variant="ghost" className="justify-start gap-2 w-full">
+                  <Button variant={activePage === 'suburbs' ? 'default' : 'ghost'} className="justify-start gap-2 w-full" onClick={() => setIsOpen(false)}>
                     <Globe className="h-4 w-4" />
                     Suburbs
                   </Button>
                 </a>
                 <a href="/calculators" className="block">
-                  <Button variant="ghost" className="justify-start gap-2 w-full">
+                  <Button variant={activePage === 'calculators' ? 'default' : 'ghost'} className="justify-start gap-2 w-full" onClick={() => setIsOpen(false)}>
                     <Calculator className="h-4 w-4" />
                     Calculators
                   </Button>
@@ -92,25 +105,34 @@ export function Navbar({ activeView, onViewChange, isDark, onToggleDark }: Navba
         {/* Desktop nav */}
         <div className="hidden lg:flex items-center gap-1">
           {navItems.map(({ id, label, icon: Icon }) => (
-            <Button
-              key={id}
-              variant={activeView === id ? 'default' : 'ghost'}
-              onClick={() => onViewChange(id)}
-              size="sm"
-              className="gap-1.5"
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </Button>
+            isEmbedded ? (
+              <Button
+                key={id}
+                variant={activeView === id ? 'default' : 'ghost'}
+                onClick={() => onViewChange(id)}
+                size="sm"
+                className="gap-1.5"
+              >
+                <Icon className="h-4 w-4" />
+                {label}
+              </Button>
+            ) : (
+              <a key={id} href="/">
+                <Button variant="ghost" size="sm" className="gap-1.5">
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </Button>
+              </a>
+            )
           ))}
           <a href="/suburbs">
-            <Button variant="ghost" size="sm" className="gap-1.5">
+            <Button variant={activePage === 'suburbs' ? 'default' : 'ghost'} size="sm" className="gap-1.5">
               <Globe className="h-4 w-4" />
               Suburbs
             </Button>
           </a>
           <a href="/calculators">
-            <Button variant="ghost" size="sm" className="gap-1.5">
+            <Button variant={activePage === 'calculators' ? 'default' : 'ghost'} size="sm" className="gap-1.5">
               <Calculator className="h-4 w-4" />
               Calculators
             </Button>
@@ -126,18 +148,29 @@ export function Navbar({ activeView, onViewChange, isDark, onToggleDark }: Navba
       <div className="flex lg:hidden border-t overflow-x-auto bg-white dark:bg-background">
         <div className="flex w-full">
           {navItems.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => onViewChange(id)}
-              className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${
-                activeView === id
-                  ? 'text-primary border-b-2 border-primary'
-                  : 'text-muted-foreground'
-              }`}
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </button>
+            isEmbedded ? (
+              <button
+                key={id}
+                onClick={() => onViewChange(id)}
+                className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${
+                  activeView === id
+                    ? 'text-primary border-b-2 border-primary'
+                    : 'text-muted-foreground'
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {label}
+              </button>
+            ) : (
+              <a
+                key={id}
+                href="/"
+                className="flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium text-muted-foreground transition-colors hover:text-primary"
+              >
+                <Icon className="h-4 w-4" />
+                {label}
+              </a>
+            )
           ))}
         </div>
       </div>
