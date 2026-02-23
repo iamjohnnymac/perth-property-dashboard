@@ -17,7 +17,7 @@ import {
 } from 'recharts';
 
 /* ============================================================
-   WA PROPERTY CALCULATORS - ScopePerth
+   WA PROPERTY CALCULATORS - Perch
    All rates sourced from WA Government (RevenueWA) as at Feb 2026
    ============================================================ */
 

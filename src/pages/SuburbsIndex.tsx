@@ -35,9 +35,9 @@ export function SuburbsIndex() {
   const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
 
   useEffect(() => {
-    document.title = 'Perth Suburbs - Property Data & Investment Stats | ScopePerth';
+    document.title = 'Perth Suburbs - Property Data & Investment Stats | Perch';
     const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute('content', 'Browse property data for 27 Perth suburbs. Compare median prices, rental yields, and investment metrics. Updated twice daily by ScopePerth.');
+    if (meta) meta.setAttribute('content', 'Browse property data for 27 Perth suburbs. Compare median prices, rental yields, and investment metrics. Updated twice daily by Perch.');
   }, []);
 
   useEffect(() => {

@@ -41,7 +41,7 @@ export function SuburbPage() {
   const [investStats, setInvestStats] = useState<any>(null);
 
   useEffect(() => {
-    document.title = 'Properties in ' + displayName + ' WA | ScopePerth';
+    document.title = 'Properties in ' + displayName + ' WA | Perch';
   }, [displayName]);
 
   useEffect(() => {
@@ -100,7 +100,7 @@ export function SuburbPage() {
   const underOfferCount = properties.filter(p => p.under_offer).length;
   const underOfferPct = properties.length > 0 ? Math.round((underOfferCount / properties.length) * 100) : 0;
 
-  const metaDescription = 'Browse ' + properties.length + ' properties for sale in ' + displayName + ' WA.' + (medianPrice ? ' Median price ' + formatPrice(medianPrice) + '.' : '') + ' Updated twice daily by ScopePerth.';
+  const metaDescription = 'Browse ' + properties.length + ' properties for sale in ' + displayName + ' WA.' + (medianPrice ? ' Median price ' + formatPrice(medianPrice) + '.' : '') + ' Updated twice daily by Perch.';
 
   useEffect(() => {
     const meta = document.querySelector('meta[name="description"]');

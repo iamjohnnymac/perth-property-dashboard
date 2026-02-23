@@ -154,7 +154,7 @@ function generateIcsUrl(property: Property, openTime: Date, closeTime: Date): st
   const ics = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//ScopePerth//Inspection//EN',
+    'PRODID:-//Perch//Inspection//EN',
     'BEGIN:VEVENT',
     'DTSTART:' + formatIcs(openTime),
     'DTEND:' + formatIcs(closeTime),
@@ -239,7 +239,7 @@ function App() {
 
   const shareData = useCallback(async (text: string) => {
     const sharePayload = {
-      title: 'ScopePerth',
+      title: 'Perch',
       text: text,
       url: 'https://perth-property-dashboard.vercel.app',
     };
@@ -972,7 +972,7 @@ function App() {
                                     `${row.suburb}: Median $${row.medianAsk ? (row.medianAsk/1000000).toFixed(2) + 'M' : 'N/A'}` +
                                     `${row.grossYield ? ' | Yield ' + row.grossYield.toFixed(1) + '%' : ''}` +
                                     `${row.weeklyRent ? ' | Rent $' + row.weeklyRent + '/wk' : ''}` +
-                                    ' via ScopePerth'
+                                    ' via Perch'
                                   )}
                                   className="text-muted-foreground hover:text-foreground transition-colors opacity-0 group-hover:opacity-100"
                                   title={`Share ${row.suburb} data`}

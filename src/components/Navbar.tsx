@@ -38,8 +38,8 @@ export function Navbar({ activeView, onViewChange, isDark, onToggleDark, activeP
         <a href="/" className="flex items-center gap-2 whitespace-nowrap shrink-0">
           <Search className="h-6 w-6 text-primary" />
           <div>
-            <span className="font-bold text-xl">ScopePerth</span>
-            <span className="hidden xl:inline text-xs text-muted-foreground ml-2">See every angle of Perth property</span>
+            <span className="font-bold text-xl">Perch</span>
+            <span className="hidden xl:inline text-xs text-muted-foreground ml-2">Your vantage point on Perth property</span>
           </div>
         </a>
 
@@ -58,7 +58,7 @@ export function Navbar({ activeView, onViewChange, isDark, onToggleDark, activeP
               <SheetHeader>
                 <SheetTitle className="font-bold text-xl flex items-center gap-2">
                   <Search className="h-5 w-5 text-primary" />
-                  ScopePerth
+                  Perch
                 </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-2 mt-6">
