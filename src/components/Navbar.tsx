@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, Search, Building2, MapPin, TrendingUp, Moon, Sun, CalendarDays, BarChart2, Globe, Calculator } from 'lucide-react';
+import { Menu, Bird, Building2, MapPin, TrendingUp, Moon, Sun, CalendarDays, BarChart2, Globe, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -36,7 +36,7 @@ export function Navbar({ activeView, onViewChange, isDark, onToggleDark, activeP
       <nav className="container mx-auto h-14 px-4 flex items-center justify-between">
         {/* Logo */}
         <a href="/" className="flex items-center gap-2 whitespace-nowrap shrink-0">
-          <Search className="h-6 w-6 text-primary" />
+          <Bird className="h-6 w-6 text-primary" />
           <div>
             <span className="font-bold text-xl">Perch</span>
             <span className="hidden xl:inline text-xs text-muted-foreground ml-2">Your vantage point on Perth property</span>
@@ -57,7 +57,7 @@ export function Navbar({ activeView, onViewChange, isDark, onToggleDark, activeP
             <SheetContent side="left">
               <SheetHeader>
                 <SheetTitle className="font-bold text-xl flex items-center gap-2">
-                  <Search className="h-5 w-5 text-primary" />
+                  <Bird className="h-5 w-5 text-primary" />
                   Perch
                 </SheetTitle>
               </SheetHeader>

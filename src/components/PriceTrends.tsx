@@ -188,8 +188,8 @@ export function PriceTrends() {
 
   const handleShare = async () => {
     const suburbText = selectedSuburbs.join(', ') || 'All suburbs';
-    const text = `Perth suburb price trends for ${suburbText} via ScopePerth`;
-    const sharePayload = { title: 'ScopePerth Price Trends', text, url: 'https://perth-property-dashboard.vercel.app' };
+    const text = `Perth suburb price trends for ${suburbText} via Perch`;
+    const sharePayload = { title: 'Perch Price Trends', text, url: 'https://perth-property-dashboard.vercel.app' };
     if (navigator.share) {
       try { await navigator.share(sharePayload); } catch {}
     } else {
