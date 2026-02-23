@@ -1006,7 +1006,7 @@ function App() {
                             <td className="text-right py-3 px-3">
                               {row.askVsSold !== null ? (
                                 <span className={row.askVsSold > 0 ? 'text-red-500 font-medium' : 'text-green-500 font-medium'}>
-                                  {row.askVsSold > 0 ? '\u2191' : '\u2193'} {Math.abs(row.askVsSold).toFixed(0)}%
+                                  {row.askVsSold > 0 ? '↑' : '↓'} {Math.abs(row.askVsSold).toFixed(0)}%
                                 </span>
                               ) : '-'}
                             </td>
@@ -1076,7 +1076,7 @@ function App() {
                     {priceDropProperties.slice(0, 6).map((property) => (
                       <div key={property.id} className="relative">
                         <Badge className="absolute top-2 left-2 z-10 bg-red-600 text-white shadow-md">
-                          \u2193 ${((property.price_drop_amount || 0) / 1000).toFixed(0)}K
+                          ↓ ${((property.price_drop_amount || 0) / 1000).toFixed(0)}K
                         </Badge>
                         <PropertyCard
                           property={property}
