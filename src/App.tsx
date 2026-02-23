@@ -775,7 +775,7 @@ function App() {
                                 <p style={{fontWeight:'700',fontSize:'13px',margin:'0 0 3px',lineHeight:'1.3',color:'#111'}}>{property.address}</p>
                                 <p style={{color:'#f97316',fontWeight:'700',fontSize:'15px',margin:'0 0 4px'}}>{property.price_display}</p>
                                 <p style={{fontSize:'11px',color:'#888',margin:'0 0 8px'}}>
-                                  {property.bedrooms}bd \u00b7 {property.bathrooms}ba \u00b7 {property.car_spaces ?? 0}car
+                                  {property.bedrooms}bd · {property.bathrooms}ba · {property.car_spaces ?? 0}car
                                 </p>
                                 <a
                                   href={property.url}
@@ -783,7 +783,7 @@ function App() {
                                   rel="noopener noreferrer"
                                   style={{fontSize:'12px',color:'#f97316',fontWeight:'600',textDecoration:'none'}}
                                 >
-                                  View on Domain \u2192
+                                  View on Domain →
                                 </a>
                               </div>
                             </Popup>
