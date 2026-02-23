@@ -734,7 +734,7 @@ function App() {
                         const count = cluster.getChildCount();
                         const size = count < 10 ? 36 : count < 50 ? 44 : 52;
                         return L.divIcon({
-                          html: '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:#f97316;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:3px solid white;box-shadow:0 3px 12px rgba(0,0,0,0.3);">' + count + '</div>',
+                          html: '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:#334155;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:3px solid white;box-shadow:0 3px 12px rgba(0,0,0,0.3);">' + count + '</div>',
                           className: '',
                           iconSize: L.point(size, size),
                         });
