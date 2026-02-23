@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -144,25 +145,28 @@ type CalcId = 'mortgage' | 'stamp' | 'borrow' | 'yield' | 'buyrent' | 'offset' |
 
 interface CalcDef {
   id: CalcId;
+  slug: string;
   title: string;
   desc: string;
+  seoTitle: string;
+  seoDesc: string;
   icon: typeof Calculator;
   color: string;
 }
 
 const CALCS: CalcDef[] = [
-  { id: 'mortgage', title: 'Mortgage Repayments', desc: 'P&I vs Interest Only with amortisation chart', icon: Home, color: 'text-orange-500' },
-  { id: 'stamp', title: 'Stamp Duty (WA)', desc: 'Transfer duty with first home buyer concessions', icon: FileText, color: 'text-blue-500' },
-  { id: 'borrow', title: 'Borrowing Power', desc: 'How much can you borrow based on income', icon: TrendingUp, color: 'text-green-500' },
-  { id: 'yield', title: 'Rental Yield', desc: 'Gross and net yield with expense breakdown', icon: Building2, color: 'text-purple-500' },
-  { id: 'buyrent', title: 'Buy vs Rent', desc: 'Break-even analysis with wealth comparison', icon: Scale, color: 'text-teal-500' },
-  { id: 'offset', title: 'Offset Account', desc: 'Interest and time saved with your offset', icon: PiggyBank, color: 'text-pink-500' },
-  { id: 'compare', title: 'Loan Comparison', desc: 'Compare two loan scenarios side by side', icon: BarChart3, color: 'text-indigo-500' },
-  { id: 'equity', title: 'Equity Calculator', desc: 'Available equity for your next purchase', icon: Layers, color: 'text-amber-500' },
-  { id: 'nge', title: 'Negative Gearing', desc: 'Tax benefits of investment property losses', icon: Percent, color: 'text-red-500' },
-  { id: 'cgt', title: 'Capital Gains Tax', desc: 'CGT on investment property sale', icon: DollarSign, color: 'text-cyan-500' },
-  { id: 'fhog', title: 'First Home Grants', desc: 'FHOG eligibility and stamp duty savings', icon: Gift, color: 'text-lime-500' },
-  { id: 'land', title: 'Land Tax (WA)', desc: 'Annual land tax for investment properties', icon: MapPin, color: 'text-rose-500' },
+  { id: 'mortgage', slug: 'mortgage-repayments', title: 'Mortgage Repayments', desc: 'P&I vs Interest Only with amortisation chart', seoTitle: 'Perth Mortgage Repayment Calculator 2026 | Perch', seoDesc: 'Calculate P&I and interest-only mortgage repayments for Perth properties. Compare weekly, fortnightly and monthly payments with amortisation chart.', icon: Home, color: 'text-orange-500' },
+  { id: 'stamp', slug: 'stamp-duty-wa', title: 'Stamp Duty (WA)', desc: 'Transfer duty with first home buyer concessions', seoTitle: 'WA Stamp Duty Calculator 2026 | Perch', seoDesc: 'Calculate Western Australia transfer duty costs including first home buyer concessions and March 2025 threshold changes. Free and accurate.', icon: FileText, color: 'text-blue-500' },
+  { id: 'borrow', slug: 'borrowing-power', title: 'Borrowing Power', desc: 'How much can you borrow based on income', seoTitle: 'Perth Borrowing Power Calculator | Perch', seoDesc: 'Estimate how much you can borrow for a Perth property based on your income, expenses and current interest rates with 3% serviceability buffer.', icon: TrendingUp, color: 'text-green-500' },
+  { id: 'yield', slug: 'rental-yield', title: 'Rental Yield', desc: 'Gross and net yield with expense breakdown', seoTitle: 'Perth Rental Yield Calculator | Perch', seoDesc: 'Calculate gross and net rental yield for Perth investment properties with full expense breakdown including management fees, rates and insurance.', icon: Building2, color: 'text-purple-500' },
+  { id: 'buyrent', slug: 'buy-vs-rent', title: 'Buy vs Rent', desc: 'Break-even analysis with wealth comparison', seoTitle: 'Buy vs Rent Calculator Perth 2026 | Perch', seoDesc: 'Should you buy or rent in Perth? Compare long-term wealth with interactive chart and break-even analysis.', icon: Scale, color: 'text-teal-500' },
+  { id: 'offset', slug: 'offset-account', title: 'Offset Account', desc: 'Interest and time saved with your offset', seoTitle: 'Offset Account Savings Calculator | Perch', seoDesc: 'Calculate how much interest and time your offset account saves on your home loan. See equivalent rate comparison.', icon: PiggyBank, color: 'text-pink-500' },
+  { id: 'compare', slug: 'loan-comparison', title: 'Loan Comparison', desc: 'Compare two loan scenarios side by side', seoTitle: 'Home Loan Comparison Calculator | Perch', seoDesc: 'Compare two home loan scenarios side by side. Monthly payments, total interest and break-even time for refinancing.', icon: BarChart3, color: 'text-indigo-500' },
+  { id: 'equity', slug: 'equity-calculator', title: 'Equity Calculator', desc: 'Available equity for your next purchase', seoTitle: 'Home Equity Calculator Perth | Perch', seoDesc: 'Calculate your available and usable equity at 80% LVR. See your maximum purchase price for your next Perth property investment.', icon: Layers, color: 'text-amber-500' },
+  { id: 'nge', slug: 'negative-gearing', title: 'Negative Gearing', desc: 'Tax benefits of investment property losses', seoTitle: 'Negative Gearing Calculator Australia 2026 | Perch', seoDesc: 'Calculate tax benefits of negatively geared investment properties. Annual loss, marginal tax rate benefit and net cost after tax.', icon: Percent, color: 'text-red-500' },
+  { id: 'cgt', slug: 'capital-gains-tax', title: 'Capital Gains Tax', desc: 'CGT on investment property sale', seoTitle: 'Capital Gains Tax Calculator Australia 2026 | Perch', seoDesc: 'Calculate CGT on investment property sales including the 50% discount for properties held longer than 12 months.', icon: DollarSign, color: 'text-cyan-500' },
+  { id: 'fhog', slug: 'first-home-grants-wa', title: 'First Home Grants', desc: 'FHOG eligibility and stamp duty savings', seoTitle: 'WA First Home Owner Grant Calculator 2026 | Perch', seoDesc: 'Check eligibility for the $10K FHOG and stamp duty concessions in Western Australia including March 2025 threshold changes.', icon: Gift, color: 'text-lime-500' },
+  { id: 'land', slug: 'land-tax-wa', title: 'Land Tax (WA)', desc: 'Annual land tax for investment properties', seoTitle: 'WA Land Tax Calculator 2026 | Perch', seoDesc: 'Calculate annual land tax for Perth investment properties using current Western Australian progressive tax rates and thresholds.', icon: MapPin, color: 'text-rose-500' },
 ];
 
 
@@ -1043,7 +1047,8 @@ const CALC_COMPONENTS: Record<CalcId, () => JSX.Element> = {
 };
 
 export function Calculators() {
-  const [activeCalc, setActiveCalc] = useState<CalcId | null>(null);
+  const { slug } = useParams<{ slug?: string }>();
+  const navigate = useNavigate();
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
 
   const toggleDark = () => {
@@ -1051,8 +1056,57 @@ export function Calculators() {
     setIsDark(!isDark);
   };
 
+  const activeDef = slug ? CALCS.find(c => c.slug === slug) : null;
+  const activeCalc = activeDef ? activeDef.id : null;
   const ActiveComponent = activeCalc ? CALC_COMPONENTS[activeCalc] : null;
-  const activeDef = activeCalc ? CALCS.find(c => c.id === activeCalc) : null;
+
+  // SEO: Set page title, meta description, and JSON-LD
+  useEffect(() => {
+    if (activeDef) {
+      document.title = activeDef.seoTitle;
+      // Meta description
+      let metaDesc = document.querySelector('meta[name="description"]');
+      if (!metaDesc) { metaDesc = document.createElement('meta'); metaDesc.setAttribute('name', 'description'); document.head.appendChild(metaDesc); }
+      metaDesc.setAttribute('content', activeDef.seoDesc);
+      // OG tags
+      let ogTitle = document.querySelector('meta[property="og:title"]');
+      if (!ogTitle) { ogTitle = document.createElement('meta'); ogTitle.setAttribute('property', 'og:title'); document.head.appendChild(ogTitle); }
+      ogTitle.setAttribute('content', activeDef.seoTitle);
+      let ogDesc = document.querySelector('meta[property="og:description"]');
+      if (!ogDesc) { ogDesc = document.createElement('meta'); ogDesc.setAttribute('property', 'og:description'); document.head.appendChild(ogDesc); }
+      ogDesc.setAttribute('content', activeDef.seoDesc);
+      // Canonical URL
+      let canonical = document.querySelector('link[rel="canonical"]');
+      if (!canonical) { canonical = document.createElement('link'); canonical.setAttribute('rel', 'canonical'); document.head.appendChild(canonical); }
+      canonical.setAttribute('href', `https://perth-property-dashboard.vercel.app/calculators/${activeDef.slug}`);
+      // JSON-LD
+      let jsonLd = document.getElementById('calc-jsonld');
+      if (!jsonLd) { jsonLd = document.createElement('script'); jsonLd.id = 'calc-jsonld'; jsonLd.setAttribute('type', 'application/ld+json'); document.head.appendChild(jsonLd); }
+      jsonLd.textContent = JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'WebApplication',
+        'name': activeDef.seoTitle.split(' | ')[0],
+        'description': activeDef.seoDesc,
+        'url': `https://perth-property-dashboard.vercel.app/calculators/${activeDef.slug}`,
+        'applicationCategory': 'FinanceApplication',
+        'operatingSystem': 'Any',
+        'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'AUD' },
+        'creator': { '@type': 'Organization', 'name': 'Perch' }
+      });
+    } else {
+      document.title = 'Property Calculators Perth | Perch';
+      let metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) metaDesc.setAttribute('content', '12 free property calculators for Perth buyers and investors. Mortgage repayments, stamp duty, borrowing power, rental yield, negative gearing and more.');
+      let canonical = document.querySelector('link[rel="canonical"]');
+      if (canonical) canonical.setAttribute('href', 'https://perth-property-dashboard.vercel.app/calculators');
+      const jsonLd = document.getElementById('calc-jsonld');
+      if (jsonLd) jsonLd.remove();
+    }
+    return () => {
+      const jsonLd = document.getElementById('calc-jsonld');
+      if (jsonLd) jsonLd.remove();
+    };
+  }, [activeDef]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -1062,9 +1116,11 @@ export function Calculators() {
         {/* Header */}
         <div className="mb-8">
           {activeCalc && (
-            <Button variant="ghost" size="sm" className="mb-4 -ml-2" onClick={() => setActiveCalc(null)}>
-              <ArrowLeft className="h-4 w-4 mr-1" /> All Calculators
-            </Button>
+            <Link to="/calculators">
+              <Button variant="ghost" size="sm" className="mb-4 -ml-2">
+                <ArrowLeft className="h-4 w-4 mr-1" /> All Calculators
+              </Button>
+            </Link>
           )}
           <h1 className="text-3xl font-bold tracking-tight">
             {activeDef ? activeDef.title : 'Property Calculators'}
@@ -1080,19 +1136,17 @@ export function Calculators() {
             {CALCS.map(calc => {
               const Icon = calc.icon;
               return (
-                <Card
-                  key={calc.id}
-                  className="cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group"
-                  onClick={() => setActiveCalc(calc.id)}
-                >
-                  <CardContent className="p-5">
-                    <div className={`${calc.color} mb-3`}>
-                      <Icon className="h-8 w-8" />
-                    </div>
-                    <h3 className="font-semibold group-hover:text-orange-500 transition-colors">{calc.title}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">{calc.desc}</p>
-                  </CardContent>
-                </Card>
+                <Link key={calc.id} to={`/calculators/${calc.slug}`} className="no-underline">
+                  <Card className="cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group h-full">
+                    <CardContent className="p-5">
+                      <div className={`${calc.color} mb-3`}>
+                        <Icon className="h-8 w-8" />
+                      </div>
+                      <h3 className="font-semibold group-hover:text-orange-500 transition-colors">{calc.title}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">{calc.desc}</p>
+                    </CardContent>
+                  </Card>
+                </Link>
               );
             })}
           </div>
@@ -1117,7 +1171,7 @@ export function Calculators() {
                   key={calc.id}
                   variant="outline"
                   className="cursor-pointer hover:bg-orange-500/10 hover:border-orange-500/30 transition-colors"
-                  onClick={() => { setActiveCalc(calc.id); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  onClick={() => { navigate(`/calculators/${calc.slug}`); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                 >
                   {calc.title}
                 </Badge>
