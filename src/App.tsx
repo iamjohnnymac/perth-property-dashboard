@@ -831,7 +831,7 @@ function App() {
                     <CalendarDays className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                     <p className="text-lg font-medium">No upcoming inspections</p>
                     <p className="text-muted-foreground">
-                      New inspection times are scraped twice daily. Check back soon!
+                      New inspection times are scraped daily at 6am. Check back soon!
                     </p>
                   </CardContent>
                 </Card>
@@ -1088,7 +1088,7 @@ function App() {
                   </div>
                   {priceDropProperties.length === 0 && (
                     <p className="text-center text-muted-foreground py-8">
-                      No price drops detected yet - monitoring twice daily
+                      No price drops detected yet - monitoring daily
                     </p>
                   )}
                 </CardContent>

@@ -37,7 +37,7 @@ export function SuburbsIndex() {
   useEffect(() => {
     document.title = 'Perth Suburbs - Property Data & Investment Stats | Perch';
     const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute('content', 'Browse property data for 27 Perth suburbs. Compare median prices, rental yields, and investment metrics. Updated twice daily by Perch.');
+    if (meta) meta.setAttribute('content', 'Browse property data for 27 Perth suburbs. Compare median prices, rental yields, and investment metrics. Updated daily by Perch.');
   }, []);
 
   useEffect(() => {
@@ -82,7 +82,7 @@ export function SuburbsIndex() {
           <Badge variant="secondary" className="mb-4 bg-white/20 text-white border-0">27 suburbs tracked</Badge>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Perth Suburb Explorer</h1>
           <p className="text-lg text-orange-100 max-w-2xl mx-auto mb-6">
-            Compare property data, rental yields, and investment metrics across Perth's northern corridor. Updated twice daily.
+            Compare property data, rental yields, and investment metrics across Perth's northern corridor. Updated daily.
           </p>
           <div className="flex justify-center gap-8 text-sm">
             <div><span className="text-2xl font-bold">{totalListings}</span><br/>Active Listings</div>
