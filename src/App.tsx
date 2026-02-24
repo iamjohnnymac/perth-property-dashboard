@@ -499,7 +499,7 @@ function App() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar activeView="grid" onViewChange={() => {}} isDark={false} onToggleDark={() => {}} />
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             {[1,2,3].map(i => (
               <div key={i} className="h-24 rounded-xl bg-muted animate-pulse" />
@@ -538,7 +538,7 @@ function App() {
 
       <main className="flex-1">
         {/* Main Content */}
-        <section className="container mx-auto px-4 py-8">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {activeView === 'grid' && (
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Desktop Filters Sidebar */}
@@ -819,7 +819,7 @@ function App() {
           )}
 
           {activeView === 'inspections' && (
-            <div className="space-y-6 max-w-4xl mx-auto">
+            <div className="space-y-6">
               <div className="flex items-center gap-2 mb-2">
                 <CalendarDays className="h-6 w-6 text-primary" />
                 <h2 className="text-2xl font-bold">Upcoming Inspections</h2>

@@ -115,7 +115,7 @@ export function SuburbPage() {
 
       {/* Hero */}
       <section className="bg-gradient-to-r from-orange-500 to-orange-600 text-white py-16">
-        <div className="container mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link to="/suburbs" className="inline-flex items-center gap-1 text-orange-100 hover:text-white mb-4 text-sm">
             <ArrowLeft className="h-4 w-4" /> All suburbs
           </Link>
@@ -146,7 +146,7 @@ export function SuburbPage() {
         </div>
       </section>
 
-      <main className="container mx-auto px-4 py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {loading ? (
           <div className="text-center py-20 text-muted-foreground">Loading properties...</div>
         ) : (

@@ -33,7 +33,7 @@ export function Navbar({ activeView, onViewChange, isDark, onToggleDark, activeP
 
   return (
     <header className="sticky border-b top-0 z-40 w-full bg-white dark:border-b-slate-700 dark:bg-background">
-      <nav className="container mx-auto h-14 px-4 flex items-center justify-between">
+      <nav className="max-w-7xl mx-auto h-14 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         {/* Logo */}
         <a href="/" className="flex items-center gap-2 whitespace-nowrap shrink-0">
           <Bird className="h-6 w-6 text-primary" />

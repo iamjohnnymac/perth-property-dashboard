@@ -78,7 +78,7 @@ export function SuburbsIndex() {
 
       {/* Hero */}
       <section className="bg-gradient-to-r from-orange-500 to-orange-600 text-white py-16">
-        <div className="container mx-auto px-4 text-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Badge variant="secondary" className="mb-4 bg-white/20 text-white border-0">27 suburbs tracked</Badge>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Perth Suburb Explorer</h1>
           <p className="text-lg text-orange-100 max-w-2xl mx-auto mb-6">
@@ -92,7 +92,7 @@ export function SuburbsIndex() {
       </section>
 
       {/* Suburb Grid */}
-      <main className="container mx-auto px-4 py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {loading ? (
           <div className="text-center py-20 text-muted-foreground">Loading suburb data...</div>
         ) : (
