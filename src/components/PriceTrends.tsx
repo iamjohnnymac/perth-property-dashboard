@@ -109,9 +109,9 @@ export function PriceTrends() {
 
       if (propertyType !== 'all') {
         const typeMap: Record<string, string[]> = {
-          house: ['House'],
-          unit: ['ApartmentUnitFlat', 'NewApartments'],
-          townhouse: ['Townhouse'],
+          house: ['house', 'duplex'],
+          unit: ['unit', 'apartment'],
+          townhouse: ['townhouse', 'villa'],
         };
         const mapped = typeMap[propertyType] || [propertyType];
         query = mapped.length === 1
